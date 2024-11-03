@@ -1,20 +1,21 @@
+use bevy::reflect::Reflect;
 use bevy::utils::HashMap;
+use directional_animation::ron_generation::generate_animations_ron::generate_animations_ron;
 use directional_animation::ron_generation::{
     AnimationGenerationParameters, AnimationTypes, DirectionalRotationMatcher,
 };
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::Path;
 
-
 // Test implementation of required traits
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, Deserialize)]
 enum TestCharacter {
     Wolf,
     Knight,
 }
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, Deserialize)]
 enum TestAnimation {
     Idle,
     Running,
@@ -23,7 +24,7 @@ enum TestAnimation {
     Casting,
 }
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, Deserialize)]
 struct TestRotation(f32);
 
 impl DirectionalRotationMatcher for TestRotation {
@@ -32,7 +33,7 @@ impl DirectionalRotationMatcher for TestRotation {
     }
 }
 
-#[derive(Serialize)]
+#[derive(Deserialize,Serialize, Reflect)]
 struct TestTypes;
 impl AnimationTypes for TestTypes {
     type CharacterName = TestCharacter;
@@ -84,12 +85,13 @@ fn test_animation_generation() {
         rotation_aliases,
         root_folder: test_folder.to_string(),
         assets_folder: assets_folder.to_string(),
+        fps: 30.,
     };
 
     // Setup test directories
 
     // Generate animations RON
-    directional_animation::ron_generation::generate_animations_ron(params);
+    generate_animations_ron(params);
 
     // Verify the RON file was created
     let ron_path = Path::new(test_folder).join("animations.ron");
