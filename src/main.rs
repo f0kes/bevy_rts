@@ -36,6 +36,7 @@ fn main() {
         .add_plugins(GamePlugin)
         .add_systems(Startup, set_window_icon)
         .run();
+        println!("awawa")
 }
 
 // Sets the icon on windows and X11

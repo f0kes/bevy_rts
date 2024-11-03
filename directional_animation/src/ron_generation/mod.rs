@@ -1,32 +1,47 @@
-use bevy::{math::Vec3, reflect::Enum, utils::HashMap};
-use serde::Serialize;
-use std::fs::{self, DirEntry};
-use std::path::{Path, PathBuf};
-
+use bevy::reflect::{Reflect, TypePath};
+use bevy::{math::Vec3, utils::HashMap};
+use serde::{Deserialize, Serialize};
+use std::fs::{self};
+use std::path::Path;
 
 pub trait DirectionalRotationMatcher {
     fn get_similarity(&self, movement_vector: Vec3) -> f32;
 }
-pub trait AnimationTypes {
-    type CharacterName: Clone + Serialize;
-    type AnimationName: Clone + Serialize;
-    type Rotation: DirectionalRotationMatcher + Clone + Serialize;
+pub trait Converter<From, To> {
+    fn convert(&self, from: From) -> To;
 }
+impl<K, V> Converter<&K, V> for HashMap<K, V>
+where
+    K: Eq + std::hash::Hash,
+    V: Clone + Serialize,
+{
+    fn convert(&self, from: &K) -> V {
+        self.get(from).unwrap().clone()
+    }
+}
+
+pub trait AnimationTypes: Serialize + Reflect + TypePath {
+    type CharacterName: Clone+Deserialize + Serialize + Send + Sync;
+    type AnimationName: Clone + Serialize + Send + Sync;
+    type Rotation: DirectionalRotationMatcher + Clone + Serialize + Send + Sync;
+}
+//TODO: utilize converters
 pub struct AnimationGenerationParameters<T: AnimationTypes> {
     pub character_aliases: HashMap<String, T::CharacterName>,
     pub animation_aliases: HashMap<String, T::AnimationName>,
     pub rotation_aliases: HashMap<String, T::Rotation>,
     pub root_folder: String,
+    pub assets_folder: String,
 }
-#[derive(Serialize)]
-struct AnimationData<T: AnimationTypes> {
+#[derive(Serialize, Deserialize)]
+pub struct AnimationData<T: AnimationTypes> {
     character: T::CharacterName,
     animation: T::AnimationName,
     rotation: T::Rotation,
     frames: Vec<String>,
 }
-#[derive(Serialize)]
-struct AnimationsCollection<T: AnimationTypes> {
+#[derive(Serialize, Deserialize, bevy::asset::Asset, bevy::reflect::TypePath)]
+pub struct AnimationsCollection<T: AnimationTypes> {
     animations: Vec<AnimationData<T>>,
 }
 //recursively traverses all folders. the root folder contains character folders
@@ -36,11 +51,11 @@ struct AnimationsCollection<T: AnimationTypes> {
 //the rotation folder contains a bunch of png files. extract file paths, sort them with natural sort(alphabetically)
 // the final ron is list (character name, animation name, rotation, vec<frame path>)
 
-fn generate_animations_ron<T: AnimationTypes>(params: AnimationGenerationParameters<T>) {
+pub fn generate_animations_ron<T: AnimationTypes>(params: AnimationGenerationParameters<T>) {
     let root_path = Path::new(&params.root_folder);
 
     // Create a vector to store all animation data
-    let mut animations: Vec<AnimationData<T>> = Vec::new();
+
     let char_dirs = match fs::read_dir(root_path) {
         Ok(dirs) => dirs,
         Err(_) => return,
@@ -51,9 +66,13 @@ fn generate_animations_ron<T: AnimationTypes>(params: AnimationGenerationParamet
         .filter_map(Result::ok)
         .filter(|e| e.path().is_dir())
     {
+        let mut animations: Vec<AnimationData<T>> = Vec::new();
+        println!(
+            "processing character {}",
+            &char_entry.file_name().to_string_lossy().to_string()
+        );
         let char_name = match char_entry.file_name().to_string_lossy().to_string() {
             name => params.character_aliases.get(&name).cloned(),
-            _ => continue,
         };
         let char_name = match char_name {
             Some(name) => name,
@@ -71,9 +90,12 @@ fn generate_animations_ron<T: AnimationTypes>(params: AnimationGenerationParamet
             .filter_map(Result::ok)
             .filter(|e| e.path().is_dir())
         {
+            println!(
+                "processing anim {}",
+                &char_entry.file_name().to_string_lossy().to_string()
+            );
             let anim_name = match anim_entry.file_name().to_string_lossy().to_string() {
                 name => params.animation_aliases.get(&name).cloned(),
-                _ => continue,
             };
             let anim_name = match anim_name {
                 Some(name) => name,
@@ -91,9 +113,12 @@ fn generate_animations_ron<T: AnimationTypes>(params: AnimationGenerationParamet
                 .filter_map(Result::ok)
                 .filter(|e| e.path().is_dir())
             {
+                println!(
+                    "processing rotation {}",
+                    &char_entry.file_name().to_string_lossy().to_string()
+                );
                 let rot_name = match rot_entry.file_name().to_string_lossy().to_string() {
                     name => params.rotation_aliases.get(&name).cloned(),
-                    _ => continue,
                 };
                 let rot_name = match rot_name {
                     Some(name) => name,
@@ -107,6 +132,7 @@ fn generate_animations_ron<T: AnimationTypes>(params: AnimationGenerationParamet
                     .flatten()
                     .filter(|e| e.path().extension().and_then(|s| s.to_str()) == Some("png"))
                     .map(|e| e.path().to_string_lossy().to_string())
+                    .map(|e| e.replace(params.assets_folder.as_str(), ""))
                     .collect();
 
                 frames.sort();
@@ -121,20 +147,23 @@ fn generate_animations_ron<T: AnimationTypes>(params: AnimationGenerationParamet
                 }
             }
         }
-    }
+        let collection = AnimationsCollection { animations };
 
+        // Serialize to RON format
+        let ron_string = ron::ser::to_string_pretty(&collection, ron::ser::PrettyConfig::default())
+            .unwrap_or_else(|e| {
+                println!("Error serializing to RON: {}", e);
+                String::new()
+            });
+
+        // Write to file
+        let ron_path = root_path.join(format!(
+            "{}_animations.ron",
+            char_entry.file_name().to_string_lossy().to_string()
+        ));
+        if let Err(e) = fs::write(ron_path, ron_string) {
+            println!("Error writing RON file: {}", e);
+        }
+    }
     // Create the final collection
-    let collection = AnimationsCollection { animations };
-
-    // Serialize to RON format
-    let ron_string = ron::ser::to_string_pretty(&collection, ron::ser::PrettyConfig::default())
-        .unwrap_or_else(|e| {
-            println!("Error serializing to RON: {}", e);
-            String::new()
-        });
-
-    // Write to file
-    if let Err(e) = fs::write(root_path.join("animations.ron"), ron_string) {
-        println!("Error writing RON file: {}", e);
-    }
 }
