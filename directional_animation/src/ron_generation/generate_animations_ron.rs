@@ -115,7 +115,7 @@ pub fn generate_animations_ron<T: AnimationTypes>(params: AnimationGenerationPar
 
         // Write to file
         let ron_path = root_path.join(format!(
-            "{}_animations.ron",
+            "{}.anim.ron",
             char_entry.file_name().to_string_lossy().to_string()
         ));
         if let Err(e) = fs::write(ron_path, ron_string) {

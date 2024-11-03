@@ -1,6 +1,7 @@
 pub mod generate_animations_ron;
 
-use bevy::asset::{Asset, AssetLoader, AsyncReadExt};
+use bevy::app::App;
+use bevy::asset::{Asset, AssetApp, AssetLoader, AsyncReadExt};
 use bevy::reflect::{Reflect, TypePath};
 use bevy::{math::Vec3, utils::HashMap};
 use serde::{Deserialize, Serialize};
@@ -24,7 +25,7 @@ where
     }
 }
 
-pub trait AnimationTypes: Deserialize<'static> + Serialize + Reflect + TypePath {
+pub trait AnimationTypes: Deserialize<'static> + Serialize + Reflect + TypePath + Default {
     type CharacterName: Clone + Serialize + for<'a> Deserialize<'a> + Send + Sync;
     type AnimationName: Clone + Serialize + for<'a> Deserialize<'a> + Send + Sync;
     type Rotation: DirectionalRotationMatcher
@@ -54,7 +55,7 @@ pub struct AnimationData<T: AnimationTypes> {
 }
 #[derive(Serialize, Asset, TypePath)]
 pub struct AnimationsCollection<T: AnimationTypes> {
-    animations: Vec<AnimationData<T>>,
+    pub animations: Vec<AnimationData<T>>,
 }
 impl<'de, T: AnimationTypes> Deserialize<'de> for AnimationsCollection<T> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -102,5 +103,14 @@ impl<AT: AnimationTypes> AssetLoader for AnimationLoader<AT> {
         reader.read_to_end(&mut bytes).await?;
         let custom_asset = ron::de::from_bytes::<AnimationsCollection<AT>>(&bytes)?;
         Ok(custom_asset)
+    }
+}
+pub trait AnimationAssetAppExt {
+    fn init_animation_assset<T: AnimationTypes>(&mut self) -> &mut Self;
+}
+impl AnimationAssetAppExt for App {
+    fn init_animation_assset<T: AnimationTypes>(&mut self) -> &mut Self {
+        self.init_asset::<AnimationsCollection<T>>();
+        self.init_asset_loader::<AnimationLoader<T>>()
     }
 }

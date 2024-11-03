@@ -23,6 +23,7 @@
                 "/wolf/PUNch/0/ComfyUI_0033.png",
                 "/wolf/PUNch/0/ComfyUI_0034.png",
             ],
+            fps: 30.0,
         ),
         (
             character: Wolf,
@@ -47,6 +48,7 @@
                 "/wolf/PUNch/225/ComfyUI_0033.png",
                 "/wolf/PUNch/225/ComfyUI_0034.png",
             ],
+            fps: 30.0,
         ),
         (
             character: Wolf,
@@ -71,6 +73,7 @@
                 "/wolf/PUNch/45/ComfyUI_0033.png",
                 "/wolf/PUNch/45/ComfyUI_0034.png",
             ],
+            fps: 30.0,
         ),
         (
             character: Wolf,
@@ -95,6 +98,7 @@
                 "/wolf/PUNch/135/ComfyUI_0033.png",
                 "/wolf/PUNch/135/ComfyUI_0034.png",
             ],
+            fps: 30.0,
         ),
         (
             character: Wolf,
@@ -119,6 +123,7 @@
                 "/wolf/PUNch/180/ComfyUI_0033.png",
                 "/wolf/PUNch/180/ComfyUI_0034.png",
             ],
+            fps: 30.0,
         ),
         (
             character: Wolf,
@@ -143,6 +148,7 @@
                 "/wolf/PUNch/90/ComfyUI_0033.png",
                 "/wolf/PUNch/90/ComfyUI_0034.png",
             ],
+            fps: 30.0,
         ),
         (
             character: Wolf,
@@ -167,6 +173,7 @@
                 "/wolf/PUNch/270/ComfyUI_0033.png",
                 "/wolf/PUNch/270/ComfyUI_0034.png",
             ],
+            fps: 30.0,
         ),
         (
             character: Wolf,
@@ -191,6 +198,7 @@
                 "/wolf/PUNch/315/ComfyUI_0033.png",
                 "/wolf/PUNch/315/ComfyUI_0034.png",
             ],
+            fps: 30.0,
         ),
         (
             character: Wolf,
@@ -241,6 +249,7 @@
                 "/wolf/abiliti/180/ComfyUI_0085.png",
                 "/wolf/abiliti/180/ComfyUI_0086.png",
             ],
+            fps: 30.0,
         ),
         (
             character: Wolf,
@@ -291,6 +300,7 @@
                 "/wolf/abiliti/225/ComfyUI_0085.png",
                 "/wolf/abiliti/225/ComfyUI_0086.png",
             ],
+            fps: 30.0,
         ),
         (
             character: Wolf,
@@ -341,6 +351,7 @@
                 "/wolf/abiliti/90/ComfyUI_0085.png",
                 "/wolf/abiliti/90/ComfyUI_0086.png",
             ],
+            fps: 30.0,
         ),
         (
             character: Wolf,
@@ -391,6 +402,7 @@
                 "/wolf/abiliti/135/ComfyUI_0085.png",
                 "/wolf/abiliti/135/ComfyUI_0086.png",
             ],
+            fps: 30.0,
         ),
         (
             character: Wolf,
@@ -441,6 +453,7 @@
                 "/wolf/abiliti/0/ComfyUI_0085.png",
                 "/wolf/abiliti/0/ComfyUI_0086.png",
             ],
+            fps: 30.0,
         ),
         (
             character: Wolf,
@@ -491,6 +504,7 @@
                 "/wolf/abiliti/315/ComfyUI_0085.png",
                 "/wolf/abiliti/315/ComfyUI_0086.png",
             ],
+            fps: 30.0,
         ),
         (
             character: Wolf,
@@ -541,6 +555,7 @@
                 "/wolf/abiliti/270/ComfyUI_0085.png",
                 "/wolf/abiliti/270/ComfyUI_0086.png",
             ],
+            fps: 30.0,
         ),
         (
             character: Wolf,
@@ -591,6 +606,7 @@
                 "/wolf/abiliti/45/ComfyUI_0085.png",
                 "/wolf/abiliti/45/ComfyUI_0086.png",
             ],
+            fps: 30.0,
         ),
         (
             character: Wolf,
@@ -619,6 +635,7 @@
                 "/wolf/WOLK/0/ComfyUI_0062.png",
                 "/wolf/WOLK/0/ComfyUI_0063.png",
             ],
+            fps: 30.0,
         ),
         (
             character: Wolf,
@@ -647,6 +664,7 @@
                 "/wolf/WOLK/90/ComfyUI_0041.png",
                 "/wolf/WOLK/90/ComfyUI_0042.png",
             ],
+            fps: 30.0,
         ),
         (
             character: Wolf,
@@ -675,6 +693,7 @@
                 "/wolf/WOLK/180/ComfyUI_0041.png",
                 "/wolf/WOLK/180/ComfyUI_0042.png",
             ],
+            fps: 30.0,
         ),
         (
             character: Wolf,
@@ -703,6 +722,7 @@
                 "/wolf/WOLK/135/ComfyUI_0041.png",
                 "/wolf/WOLK/135/ComfyUI_0042.png",
             ],
+            fps: 30.0,
         ),
         (
             character: Wolf,
@@ -731,6 +751,7 @@
                 "/wolf/WOLK/45/ComfyUI_0041.png",
                 "/wolf/WOLK/45/ComfyUI_0042.png",
             ],
+            fps: 30.0,
         ),
         (
             character: Wolf,
@@ -759,6 +780,7 @@
                 "/wolf/WOLK/225/ComfyUI_0041.png",
                 "/wolf/WOLK/225/ComfyUI_0042.png",
             ],
+            fps: 30.0,
         ),
         (
             character: Wolf,
@@ -787,6 +809,7 @@
                 "/wolf/WOLK/270/ComfyUI_0041.png",
                 "/wolf/WOLK/270/ComfyUI_0042.png",
             ],
+            fps: 30.0,
         ),
         (
             character: Wolf,
@@ -815,6 +838,7 @@
                 "/wolf/WOLK/315/ComfyUI_0041.png",
                 "/wolf/WOLK/315/ComfyUI_0042.png",
             ],
+            fps: 30.0,
         ),
     ],
 )

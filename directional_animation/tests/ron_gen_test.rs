@@ -1,8 +1,11 @@
+use bevy::app::App;
+use bevy::prelude::*;
 use bevy::reflect::Reflect;
 use bevy::utils::HashMap;
 use directional_animation::ron_generation::generate_animations_ron::generate_animations_ron;
 use directional_animation::ron_generation::{
-    AnimationGenerationParameters, AnimationTypes, DirectionalRotationMatcher,
+    AnimationAssetAppExt, AnimationGenerationParameters, AnimationTypes, AnimationsCollection,
+    DirectionalRotationMatcher,
 };
 use serde::{Deserialize, Serialize};
 use std::fs;
@@ -33,12 +36,18 @@ impl DirectionalRotationMatcher for TestRotation {
     }
 }
 
-#[derive(Deserialize,Serialize, Reflect)]
+#[derive(Deserialize, Serialize, Reflect, Default)]
 struct TestTypes;
 impl AnimationTypes for TestTypes {
     type CharacterName = TestCharacter;
     type AnimationName = TestAnimation;
     type Rotation = TestRotation;
+}
+
+#[derive(Resource, Default)]
+pub struct State {
+    pub collection: Handle<AnimationsCollection<TestTypes>>,
+    pub printed: bool,
 }
 
 fn setup_test_directories(root: &str) {
@@ -63,10 +72,7 @@ fn populate_rotation_aliases() -> HashMap<String, TestRotation> {
 
     rotation_aliases
 }
-
-#[test]
-fn test_animation_generation() {
-    // Create test data
+fn get_generation_params(test_folder: &str) -> AnimationGenerationParameters<TestTypes> {
     let mut character_aliases = HashMap::new();
     character_aliases.insert("wolf".to_string(), TestCharacter::Wolf);
 
@@ -77,25 +83,59 @@ fn test_animation_generation() {
 
     let rotation_aliases = populate_rotation_aliases();
 
-    let test_folder = "/run/host/var/home/f0kes/dev/bevy/bevy_rts/assets";
     let assets_folder = test_folder;
-    let params: AnimationGenerationParameters<TestTypes> = AnimationGenerationParameters {
+    AnimationGenerationParameters {
         character_aliases,
         animation_aliases,
         rotation_aliases,
         root_folder: test_folder.to_string(),
         assets_folder: assets_folder.to_string(),
         fps: 30.,
-    };
-
-    // Setup test directories
-
-    // Generate animations RON
+    }
+}
+#[test]
+fn test_animation_generation() {
+    let test_folder = "/run/host/var/home/f0kes/dev/bevy/bevy_rts/assets";
+    let params: AnimationGenerationParameters<TestTypes> = get_generation_params(&test_folder);
     generate_animations_ron(params);
 
-    // Verify the RON file was created
-    let ron_path = Path::new(test_folder).join("animations.ron");
+    let ron_path = Path::new(test_folder).join("anim.ron");
     assert!(ron_path.exists(), "animations.ron file was not created");
+}
+#[test]
+fn test_load_animation() {
+    let mut app = App::new();
+    let test_folder = "/run/host/var/home/f0kes/dev/bevy/bevy_rts/assets";
+    let params: AnimationGenerationParameters<TestTypes> = get_generation_params(&test_folder);
+    app.add_plugins((MinimalPlugins, AssetPlugin::default()));
+    app.init_animation_assset::<TestTypes>();
+    app.add_systems(Startup, load_animations);
+    app.add_systems(Update, print_on_load);
+    app.run();
+}
+fn load_animations(mut commands: Commands, server: Res<AssetServer>, mut state: ResMut<State>) {
+    state.collection = server.load("wolf.anim.ron");
+}
+fn print_on_load(
+    mut state: ResMut<State>,
+    custom_assets: Res<Assets<AnimationsCollection<TestTypes>>>,
+) {
+    let collection = custom_assets.get(&state.collection);
 
-    // Clean up test directories
+    // Can't print results if the assets aren't ready
+    if state.printed {
+        return;
+    }
+
+    if collection.is_none() {
+        info!("Custom Asset Not Ready");
+        return;
+    }
+
+    let animations = &collection.unwrap().animations;
+    let stri = animations.get(0).unwrap().rotation.0;
+    info!("Custom asset loaded: {:?}", stri);
+
+    // Once printed, we won't print again
+    state.printed = true;
 }
