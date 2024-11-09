@@ -22,7 +22,7 @@ pub fn generate_animations_ron<T: AnimationTypes>(params: AnimationGenerationPar
         .filter_map(Result::ok)
         .filter(|e| e.path().is_dir())
     {
-        let mut animations: Vec<AnimationData<T>> = Vec::new();
+        let mut animations: Vec<AnimationLoadData<T>> = Vec::new();
         println!(
             "processing character {}",
             &char_entry.file_name().to_string_lossy().to_string()
@@ -94,7 +94,7 @@ pub fn generate_animations_ron<T: AnimationTypes>(params: AnimationGenerationPar
                 frames.sort();
 
                 if !frames.is_empty() {
-                    animations.push(AnimationData {
+                    animations.push(AnimationLoadData {
                         character: char_name.clone(),
                         animation: anim_name.clone(),
                         rotation: rot_name,

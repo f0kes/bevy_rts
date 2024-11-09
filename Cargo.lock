@@ -597,10 +597,13 @@ dependencies = [
  "bevy",
  "bevy_asset_loader",
  "bevy_kira_audio",
+ "directional_animation",
  "embed-resource",
  "image",
  "log",
  "rand",
+ "ron",
+ "serde",
  "webbrowser",
  "winit",
 ]

@@ -26,6 +26,7 @@ pub enum TestAnimation {
     Dying,
     Casting,
 }
+
 #[derive(Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct TestRotation(u32);
 
@@ -128,8 +129,7 @@ fn test_animation_generation() {
 #[test]
 fn test_load_animation() {
     let mut app = App::new();
-    let test_folder = "/run/host/var/home/f0kes/dev/bevy/bevy_rts/assets";
-    let _params: AnimationGenerationParameters<TestTypes> = get_generation_params(&test_folder);
+
     app.add_plugins((MinimalPlugins, AssetPlugin::default()));
     app.init_animation_assset::<TestTypes>();
     app.add_systems(Startup, load_animations);
