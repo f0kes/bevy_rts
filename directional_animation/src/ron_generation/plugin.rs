@@ -3,15 +3,16 @@ use std::marker::PhantomData;
 
 use super::{
     animation_library::{
-        are_all_animation_sprites_loaded, load_sprites, AnimationWithPathsToHandles,
+        self, are_all_animation_sprites_loaded, load_sprites, AnimationLibrary,
+        AnimationWithPathsToHandles, AnimationsWithPaths,
     },
-    AnimationTypes, AnimationsCollection,
+    animator::{animate, change_animation},
+    AnimationLoader, AnimationTypes, AnimationsCollection,
 };
 
 // 1. Loading states
-#[derive(States, Debug, Clone, Copy, Eq, PartialEq, Hash, Default)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash, States)]
 pub enum AnimationLoadingState {
-    #[default]
     LoadingAnimFiles,
     LoadingSprites,
     BuildingLibrary,
@@ -35,36 +36,33 @@ impl Default for AnimationPaths {
     }
 }
 
-// 3. Resource to track loaded animations
-#[derive(Resource, Default)]
-pub struct AnimationCollections<T: AnimationTypes> {
-    collections: Vec<Handle<AnimationsCollection<T>>>,
-}
-
 // 4. Systems
 pub fn load_animation_files<T: AnimationTypes>(
     asset_server: Res<AssetServer>,
     animation_paths: Res<AnimationPaths>,
-    mut collection_resource: ResMut<AnimationCollections<T>>,
+    mut collection_resource: ResMut<AnimationWithPathsToHandles<T>>,
 ) {
-    if collection_resource.collections.is_empty() {
-        collection_resource.collections = animation_paths
-            .paths
+    let animation_definitions: Vec<Handle<AnimationsWithPaths<T>>> = animation_paths
+        .paths
+        .iter()
+        .map(|path| asset_server.load(path))
+        .collect();
+    collection_resource.paths_to_handles.extend(
+        animation_definitions
             .iter()
-            .map(|path| asset_server.load(path))
-            .collect();
-    }
+            .map(|handle| (handle.clone(), None)),
+    );
 }
 
 pub fn check_animations_loaded<T: AnimationTypes>(
     mut next_state: ResMut<NextState<AnimationLoadingState>>,
     asset_server: Res<AssetServer>,
-    animation_collections: Res<AnimationCollections<T>>,
+    animation_collections: Res<AnimationWithPathsToHandles<T>>,
 ) {
     let all_loaded = animation_collections
-        .collections
+        .paths_to_handles
         .iter()
-        .all(|handle| asset_server.is_loaded_with_dependencies(handle));
+        .all(|(handle, _)| asset_server.is_loaded_with_dependencies(handle));
 
     if all_loaded {
         next_state.set(AnimationLoadingState::LoadingSprites);
@@ -86,55 +84,89 @@ pub fn build_animation_library<T: AnimationTypes>(
     mut next_state: ResMut<NextState<AnimationLoadingState>>,
     animations_with_handles: Res<AnimationWithPathsToHandles<T>>,
     textures: ResMut<Assets<Image>>,
+    texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
+    mut animation_library: ResMut<AnimationLibrary<T>>,
 ) {
-    animations_with_handles.build_animation_library(textures);
+    animation_library.animations = animations_with_handles
+        .build_animation_library(textures, texture_atlas_layouts)
+        .animations;
     next_state.set(AnimationLoadingState::Complete);
 }
-pub struct AnimationLoaderPlugin<T: AnimationTypes> {
+
+#[derive(Default)]
+pub struct LoadAnimationPlugin<T: AnimationTypes> {
     phantom: PhantomData<T>,
-    paths: Vec<String>,
+    paths: Option<Vec<String>>,
 }
 
-impl<T: AnimationTypes> AnimationLoaderPlugin<T> {
+impl<T: AnimationTypes> LoadAnimationPlugin<T> {
     pub fn new(paths: Vec<String>) -> Self {
         Self {
             phantom: PhantomData,
-            paths,
-        }
-    }
-}
-impl<T: AnimationTypes> Default for AnimationLoaderPlugin<T> {
-    fn default() -> Self {
-        Self {
-            phantom: Default::default(),
-            paths: Default::default(),
+            paths: Some(paths),
         }
     }
 }
 
-impl<T: AnimationTypes> Plugin for AnimationLoaderPlugin<T> {
+impl<T: AnimationTypes> Plugin for LoadAnimationPlugin<T> {
     fn build(&self, app: &mut App) {
-        app.init_state::<AnimationLoadingState>()
-            .insert_resource(AnimationPaths {
-                paths: self.paths.clone(),
-            })
-            .init_resource::<AnimationCollections<T>>()
-            .add_systems(
-                OnEnter(AnimationLoadingState::LoadingAnimFiles),
-                load_animation_files::<T>,
-            )
-            .add_systems(
-                Update,
-                check_animations_loaded::<T>
-                    .run_if(in_state(AnimationLoadingState::LoadingAnimFiles)),
-            )
-            .add_systems(
-                OnEnter(AnimationLoadingState::LoadingSprites),
-                load_sprites::<T>,
-            )
-            .add_systems(
-                OnEnter(AnimationLoadingState::BuildingLibrary),
-                build_animation_library::<T>,
-            );
+        app.init_asset::<AnimationsCollection<T>>();
+        app.init_asset_loader::<AnimationLoader<T>>();
+        app.insert_state(AnimationLoadingState::LoadingAnimFiles);
+        app.insert_resource(if let Some(ref paths) = self.paths {
+            AnimationPaths {
+                paths: paths.clone(),
+            }
+        } else {
+            AnimationPaths::default()
+        });
+
+        app.init_resource::<AnimationWithPathsToHandles<T>>();
+        app.init_resource::<AnimationLibrary<T>>();
+        app.add_systems(
+            OnEnter(AnimationLoadingState::LoadingAnimFiles),
+            load_animation_files::<T>,
+        );
+        app.add_systems(
+            Update,
+            check_animations_loaded::<T>.run_if(in_state(AnimationLoadingState::LoadingAnimFiles)),
+        );
+        app.add_systems(
+            OnEnter(AnimationLoadingState::LoadingSprites),
+            load_sprites::<T>,
+        );
+        app.add_systems(
+            Update,
+            check_sprites_loaded::<T>.run_if(in_state(AnimationLoadingState::LoadingSprites)),
+        );
+        app.add_systems(
+            OnEnter(AnimationLoadingState::BuildingLibrary),
+            build_animation_library::<T>,
+        );
+    }
+}
+
+pub struct AnimatePlugin<T: AnimationTypes> {
+    phantom: PhantomData<T>,
+}
+
+impl<T: AnimationTypes> Default for AnimatePlugin<T> {
+    fn default() -> Self {
+        Self {
+            phantom: Default::default(),
+        }
+    }
+}
+
+impl<T: AnimationTypes> Plugin for AnimatePlugin<T> {
+    fn build(&self, app: &mut App) {
+        app.add_systems(
+            Update,
+            change_animation::<T>.run_if(in_state(AnimationLoadingState::Complete)),
+        );
+        app.add_systems(
+            Update,
+            animate.run_if(in_state(AnimationLoadingState::Complete)),
+        );
     }
 }

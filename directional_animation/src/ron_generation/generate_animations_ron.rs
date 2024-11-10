@@ -89,6 +89,7 @@ pub fn generate_animations_ron<T: AnimationTypes>(params: AnimationGenerationPar
                     .filter(|e| e.path().extension().and_then(|s| s.to_str()) == Some("png"))
                     .map(|e| e.path().to_string_lossy().to_string())
                     .map(|e| e.replace(params.assets_folder.as_str(), ""))
+                    .map(|e| if e.starts_with('/') { e[1..].to_string() } else { e })
                     .collect();
 
                 frames.sort();

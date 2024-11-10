@@ -1,7 +1,9 @@
 use crate::actions::Actions;
+use crate::animation_defintions::{AnimationType, Character};
 use crate::loading::TextureAssets;
 use crate::GameState;
 use bevy::prelude::*;
+use directional_animation::ron_generation::animator::MovementDirection;
 
 pub struct PlayerPlugin;
 
@@ -17,20 +19,24 @@ impl Plugin for PlayerPlugin {
     }
 }
 
-fn spawn_player(mut commands: Commands, textures: Res<TextureAssets>) {
+fn spawn_player(mut commands: Commands) {
     commands
-        .spawn(SpriteBundle {
-            texture: textures.bevy.clone(),
-            transform: Transform::from_translation(Vec3::new(0., 0., 1.)),
+        .spawn(Player)
+        .insert(SpriteBundle {
+            transform: Transform::from_scale(Vec3::ONE * 0.2),
             ..Default::default()
         })
-        .insert(Player);
+        .insert(Character::Wolf)
+        .insert(AnimationType::Running)
+        .insert(MovementDirection {
+            direction: Vec3::new(0., 0., 0.),
+        });
 }
 
 fn move_player(
     time: Res<Time>,
     actions: Res<Actions>,
-    mut player_query: Query<&mut Transform, With<Player>>,
+    mut player_query: Query<(&mut Transform, Option<&mut MovementDirection>), With<Player>>,
 ) {
     if actions.player_movement.is_none() {
         return;
@@ -41,7 +47,12 @@ fn move_player(
         actions.player_movement.unwrap().y * speed * time.delta_seconds(),
         0.,
     );
-    for mut player_transform in &mut player_query {
+    for (mut player_transform, option_direction) in &mut player_query {
         player_transform.translation += movement;
+        if movement.length_squared() > 0.01 {
+            if let Some(mut direction) = option_direction {
+                direction.direction = movement;
+            }
+        }
     }
 }

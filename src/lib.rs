@@ -5,6 +5,7 @@ mod audio;
 mod loading;
 mod menu;
 mod player;
+pub mod animation_defintions;
 
 use crate::actions::ActionsPlugin;
 use crate::audio::InternalAudioPlugin;
@@ -25,6 +26,7 @@ enum GameState {
     // During the loading State the LoadingPlugin will load our assets
     #[default]
     Loading,
+    Loaded,
     // During this State the actual game logic is executed
     Playing,
     // Here the menu is drawn and waiting for player interaction

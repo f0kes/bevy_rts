@@ -3,9 +3,9 @@ use bevy::prelude::*;
 use bevy::reflect::Reflect;
 use bevy::utils::HashMap;
 use directional_animation::ron_generation::generate_animations_ron::generate_animations_ron;
+use directional_animation::ron_generation::plugin::LoadAnimationPlugin;
 use directional_animation::ron_generation::{
-    AnimationAssetAppExt, AnimationGenerationParameters, AnimationTypes, AnimationsCollection,
-    DirectionalRotationMatcher,
+    AnimationGenerationParameters, AnimationTypes, AnimationsCollection, DirectionalRotationMatcher,
 };
 use serde::{Deserialize, Serialize};
 use std::fs;
@@ -131,7 +131,7 @@ fn test_load_animation() {
     let test_folder = "/run/host/var/home/f0kes/dev/bevy/bevy_rts/assets";
     let _params: AnimationGenerationParameters<TestTypes> = get_generation_params(&test_folder);
     app.add_plugins((MinimalPlugins, AssetPlugin::default()));
-    app.init_animation_assset::<TestTypes>();
+    app.add_plugins(LoadAnimationPlugin::<TestTypes>::default());
     app.add_systems(Startup, load_animations);
     app.add_systems(Update, print_on_load);
     app.add_systems(Update, timeout);

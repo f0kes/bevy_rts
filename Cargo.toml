@@ -52,6 +52,7 @@ log = { version = "0.4", features = [
 directional_animation= {path = "./directional_animation"}
 serde = { version = "1.0.214", features = ["derive"] }
 ron = "0.8.1"
+bevy_editor_pls.workspace = true
 
 [profile.dev.package."*"]
 opt-level = 3
@@ -112,6 +113,7 @@ bevy_kira_audio = { version = "0.20" }
 bevy_asset_loader = { version = "0.21" }
 rand = { version = "0.8.3" }
 webbrowser = { version = "1", features = ["hardened"] }
+bevy_editor_pls = "0.9.0"
 
 # keep the following in sync with Bevy's dependencies
 winit = { version = "0.30", default-features = false }

@@ -6,37 +6,45 @@ use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 use bevy::winit::WinitWindows;
 use bevy::DefaultPlugins;
-use bevy_game::GamePlugin; // ToDo: Replace bevy_game with your new crate name.
+use bevy_game::animation_defintions::HiveMindAnimationTypes;
+use bevy_game::GamePlugin;
+use directional_animation::ron_generation::plugin::{AnimatePlugin, LoadAnimationPlugin};
+use bevy_editor_pls::prelude::*;
+
 use std::io::Cursor;
 use winit::window::Icon;
 
 fn main() {
-    App::new()
-        .insert_resource(Msaa::Off)
-        .insert_resource(ClearColor(Color::linear_rgb(0.4, 0.4, 0.4)))
-        .add_plugins(
-            DefaultPlugins
-                .set(WindowPlugin {
-                    primary_window: Some(Window {
-                        title: "Bevy game".to_string(), // ToDo
-                        // Bind to canvas included in `index.html`
-                        canvas: Some("#bevy".to_owned()),
-                        fit_canvas_to_parent: true,
-                        // Tells wasm not to override default event handling, like F5 and Ctrl+R
-                        prevent_default_event_handling: false,
-                        ..default()
-                    }),
-                    ..default()
-                })
-                .set(AssetPlugin {
-                    meta_check: AssetMetaCheck::Never,
-                    ..default()
-                }),
-        )
-        .add_plugins(GamePlugin)
-        .add_systems(Startup, set_window_icon)
-        .run();
-        println!("awawa")
+    let mut app = App::new();
+    app.insert_resource(Msaa::Off);
+    app.insert_resource(ClearColor(Color::linear_rgb(0.4, 0.4, 0.4)));
+
+    let window_plugin = WindowPlugin {
+        primary_window: Some(Window {
+            title: "Bevy game".to_string(), // ToDo
+            // Bind to canvas included in `index.html`
+            canvas: Some("#bevy".to_owned()),
+            fit_canvas_to_parent: true,
+            // Tells wasm not to override default event handling, like F5 and Ctrl+R
+            prevent_default_event_handling: false,
+            ..default()
+        }),
+        ..default()
+    };
+
+    let asset_plugin = AssetPlugin {
+        meta_check: AssetMetaCheck::Never,
+        ..default()
+    };
+
+    app.add_plugins(DefaultPlugins.set(window_plugin).set(asset_plugin));
+    app.add_plugins(EditorPlugin::default());
+
+    app.add_plugins(AnimatePlugin::<HiveMindAnimationTypes>::default());
+    app.add_plugins(GamePlugin);
+    app.add_systems(Startup, set_window_icon);
+
+    app.run();
 }
 
 // Sets the icon on windows and X11

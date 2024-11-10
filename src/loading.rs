@@ -1,9 +1,22 @@
-use crate::GameState;
+use crate::{animation_defintions::HiveMindAnimationTypes, GameState};
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
 use bevy_kira_audio::AudioSource;
+use directional_animation::ron_generation::plugin::{AnimationLoadingState, LoadAnimationPlugin};
 
 pub struct LoadingPlugin;
+
+fn check_loading_complete(
+    animation_state: Res<State<AnimationLoadingState>>,
+    game_state: Res<State<GameState>>,
+    mut next_state: ResMut<NextState<GameState>>,
+) {
+    if animation_state.get() == &AnimationLoadingState::Complete
+        && game_state.get() == &GameState::Loaded
+    {
+        next_state.set(GameState::Menu);
+    }
+}
 
 /// This plugin loads all assets using [`AssetLoader`] from a third party bevy plugin
 /// Alternatively you can write the logic to load assets yourself
@@ -12,9 +25,14 @@ impl Plugin for LoadingPlugin {
     fn build(&self, app: &mut App) {
         app.add_loading_state(
             LoadingState::new(GameState::Loading)
-                .continue_to_state(GameState::Menu)
+                .continue_to_state(GameState::Loaded)
                 .load_collection::<AudioAssets>()
                 .load_collection::<TextureAssets>(),
+        );
+        app.add_plugins(LoadAnimationPlugin::<HiveMindAnimationTypes>::default());
+        app.add_systems(
+            Update,
+            check_loading_complete.run_if(in_state(GameState::Loaded)),
         );
     }
 }

@@ -1,6 +1,7 @@
 pub mod animation_library;
 pub mod generate_animations_ron;
 pub mod plugin;
+pub mod animator;
 
 use bevy::app::App;
 use bevy::asset::{Asset, AssetApp, AssetLoader, AsyncReadExt};
@@ -146,14 +147,5 @@ impl<AT: AnimationTypes> AssetLoader for AnimationLoader<AT> {
                 Err(AnimationLoaderError::RonSpannedError(e))
             }
         }
-    }
-}
-pub trait AnimationAssetAppExt {
-    fn init_animation_assset<T: AnimationTypes>(&mut self) -> &mut Self;
-}
-impl AnimationAssetAppExt for App {
-    fn init_animation_assset<T: AnimationTypes>(&mut self) -> &mut Self {
-        self.init_asset::<AnimationsCollection<T>>();
-        self.init_asset_loader::<AnimationLoader<T>>()
     }
 }
