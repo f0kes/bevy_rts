@@ -19,8 +19,8 @@ pub enum AnimationType {
     Casting,
 }
 #[derive(Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
-pub struct CharacterRotation(u32);
-impl DirectionalRotationMatcher for CharacterRotation {
+pub struct CharacterRotationDegrees(u32);
+impl DirectionalRotationMatcher for CharacterRotationDegrees {
     fn get_similarity(&self, movement_vector: bevy::math::Vec3) -> f32 {
         let angle = self.0 as f32;
         let movement_angle = movement_vector.x.atan2(-movement_vector.y).to_degrees();
@@ -44,15 +44,15 @@ pub struct HiveMindAnimationTypes;
 impl AnimationTypes for HiveMindAnimationTypes {
     type CharacterName = Character;
     type AnimationName = AnimationType;
-    type Rotation = CharacterRotation;
+    type Rotation = CharacterRotationDegrees;
 }
-fn populate_rotation_aliases() -> HashMap<String, CharacterRotation> {
+fn populate_rotation_aliases() -> HashMap<String, CharacterRotationDegrees> {
     let angles = "0,45,90,135,180,225,270,315";
     let mut rotation_aliases = HashMap::new();
 
     for angle_str in angles.split(',') {
         let angle: u32 = angle_str.parse().unwrap();
-        rotation_aliases.insert(angle_str.to_string(), CharacterRotation(angle));
+        rotation_aliases.insert(angle_str.to_string(), CharacterRotationDegrees(angle));
     }
 
     rotation_aliases

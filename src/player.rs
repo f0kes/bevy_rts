@@ -23,7 +23,7 @@ fn spawn_player(mut commands: Commands) {
     commands
         .spawn(Player)
         .insert(SpriteBundle {
-            transform: Transform::from_scale(Vec3::ONE * 0.2),
+            transform: Transform::from_scale(Vec3::ONE * 1.0),
             ..Default::default()
         })
         .insert(Character::Wolf)
