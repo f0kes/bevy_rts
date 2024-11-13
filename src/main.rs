@@ -1,15 +1,16 @@
 // disable console on windows for release builds
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use bevy::asset::AssetMetaCheck;
 use bevy::prelude::*;
+use bevy::render::texture::ImageSamplerDescriptor;
 use bevy::window::PrimaryWindow;
 use bevy::winit::WinitWindows;
 use bevy::DefaultPlugins;
+use bevy::{asset::AssetMetaCheck, render::texture::ImageSampler};
+use bevy_editor_pls::prelude::*;
 use bevy_game::animation_defintions::HiveMindAnimationTypes;
 use bevy_game::GamePlugin;
 use directional_animation::ron_generation::plugin::{AnimatePlugin, LoadAnimationPlugin};
-use bevy_editor_pls::prelude::*;
 
 use std::io::Cursor;
 use winit::window::Icon;
@@ -17,6 +18,7 @@ use winit::window::Icon;
 fn main() {
     let mut app = App::new();
     app.insert_resource(Msaa::Off);
+
     app.insert_resource(ClearColor(Color::linear_rgb(0.4, 0.4, 0.4)));
 
     let window_plugin = WindowPlugin {
@@ -36,8 +38,16 @@ fn main() {
         meta_check: AssetMetaCheck::Never,
         ..default()
     };
+    let image_plugin = ImagePlugin {
+        default_sampler: ImageSamplerDescriptor::nearest(),
+    };
 
-    app.add_plugins(DefaultPlugins.set(window_plugin).set(asset_plugin));
+    app.add_plugins(
+        DefaultPlugins
+            .set(window_plugin)
+            .set(asset_plugin)
+            .set(image_plugin),
+    );
     app.add_plugins(EditorPlugin::default());
 
     app.add_plugins(AnimatePlugin::<HiveMindAnimationTypes>::default());

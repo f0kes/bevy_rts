@@ -47,12 +47,10 @@ impl AnimationTypes for HiveMindAnimationTypes {
     type Rotation = CharacterRotationDegrees;
 }
 fn populate_rotation_aliases() -> HashMap<String, CharacterRotationDegrees> {
-    let angles = "0,45,90,135,180,225,270,315";
     let mut rotation_aliases = HashMap::new();
 
-    for angle_str in angles.split(',') {
-        let angle: u32 = angle_str.parse().unwrap();
-        rotation_aliases.insert(angle_str.to_string(), CharacterRotationDegrees(angle));
+    for i in (0..360).step_by(45) {
+        rotation_aliases.insert(i.to_string(), CharacterRotationDegrees(i));
     }
 
     rotation_aliases

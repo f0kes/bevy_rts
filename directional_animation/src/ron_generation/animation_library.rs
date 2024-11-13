@@ -83,10 +83,18 @@ impl<T: AnimationTypes> AnimationLibrary<T> {
 #[derive(Resource, Default)]
 pub struct AnimationWithPathsToHandles<T: AnimationTypes> {
     pub paths_to_handles: HashMap<Handle<AnimationsWithPaths<T>>, Option<AnimationsWithHandles<T>>>,
+    pub padding: Option<UVec2>,
+    pub sampling: Option<ImageSampler>,
 }
 impl<T: AnimationTypes> AnimationWithPathsToHandles<T> {
     pub fn add_collection(&mut self, collection: Handle<AnimationsCollection<T>>) {
         self.paths_to_handles.insert(collection, None);
+    }
+    pub fn set_padding(&mut self, padding: UVec2) {
+        self.padding = Some(padding);
+    }
+    pub fn set_sampling(&mut self, sampling: ImageSampler) {
+        self.sampling = Some(sampling);
     }
     pub fn build_animation_library(
         &self,
@@ -107,8 +115,12 @@ impl<T: AnimationTypes> AnimationWithPathsToHandles<T> {
                     };
 
                     // Create texture atlas outside the closure
-                    let (texture_atlas_layout, texture_atlas) =
-                        create_texture_atlas(animation.frames.clone(), None, None, &mut textures);
+                    let (texture_atlas_layout, texture_atlas) = create_texture_atlas(
+                        animation.frames.clone(),
+                        self.padding,
+                        self.sampling.clone(),
+                        &mut textures,
+                    );
                     let texture_atlas_layout_handle =
                         texture_atlas_layouts.add(texture_atlas_layout);
                     let clip = MyAnimationClip {
