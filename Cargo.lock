@@ -723,6 +723,7 @@ dependencies = [
  "bevy_asset_loader",
  "bevy_editor_pls",
  "bevy_kira_audio",
+ "blenvy",
  "directional_animation",
  "embed-resource",
  "image 0.25.1",
@@ -1387,6 +1388,19 @@ dependencies = [
  "cc",
  "cfg-if",
  "constant_time_eq",
+]
+
+[[package]]
+name = "blenvy"
+version = "0.1.0-alpha.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a54af0aa5fc695e7a3a6880a34570b1a5388851a20cee43f90c43f2580ff8fcd"
+dependencies = [
+ "bevy",
+ "bevy_common_assets",
+ "ron",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

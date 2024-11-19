@@ -10,10 +10,23 @@ use bevy::{asset::AssetMetaCheck, render::texture::ImageSampler};
 use bevy_editor_pls::prelude::*;
 use bevy_game::animation_defintions::HiveMindAnimationTypes;
 use bevy_game::GamePlugin;
+use blenvy::{BlenvyPlugin, BlueprintInfo, GameWorldTag, HideUntilReady, SpawnBlueprint};
 use directional_animation::ron_generation::plugin::{AnimatePlugin, LoadAnimationPlugin};
 
 use std::io::Cursor;
 use winit::window::Icon;
+
+#[derive(Component, Reflect)]
+#[reflect(Component)]
+struct Player {
+    strength: f32,
+    perception: f32,
+    endurance: f32,
+    charisma: f32,
+    intelligence: f32,
+    agility: f32,
+    luck: f32,
+}
 
 fn main() {
     let mut app = App::new();
@@ -49,11 +62,12 @@ fn main() {
             .set(image_plugin),
     );
     app.add_plugins(EditorPlugin::default());
-
+    app.add_plugins(BlenvyPlugin::default());
+    app.register_type::<Player>();
     app.add_plugins(AnimatePlugin::<HiveMindAnimationTypes>::default());
-    app.add_plugins(GamePlugin);
+    //app.add_plugins(GamePlugin);
     app.add_systems(Startup, set_window_icon);
-
+    app.add_systems(Startup, setup);
     app.run();
 }
 
@@ -76,4 +90,13 @@ fn set_window_icon(
         let icon = Icon::from_rgba(rgba, width, height).unwrap();
         primary.set_window_icon(Some(icon));
     };
+}
+
+fn setup(mut commands: Commands) {
+    commands.spawn((
+        BlueprintInfo::from_path("levels/World.glb"),
+        SpawnBlueprint,
+        HideUntilReady,
+        GameWorldTag,
+    ));
 }
