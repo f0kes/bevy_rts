@@ -10,6 +10,8 @@ use movement::plugin::{MovementPlugin, MovementPluginConfig};
 use movement::rotate::{
     RotateInDirectionOfMovement, TiltInDirectionOfMovement,
 };
+use outline::material_replace::ReplaceMaterialMarker;
+use outline::shader_material::OutlineMaterial;
 
 pub struct PlayerPlugin;
 
@@ -34,11 +36,16 @@ impl Plugin for PlayerPlugin {
 #[reflect(Component)]
 pub struct Player;
 
-fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn spawn_player(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut materials: ResMut<Assets<OutlineMaterial>>,
+) {
     let player_handle = asset_server.load("models/King.glb#Scene0");
     commands.spawn((
         SceneBundle {
             scene: player_handle,
+
             ..Default::default()
         },
         Player,
@@ -47,6 +54,13 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
         LockedAxes::new().lock_rotation_z().lock_rotation_x(),
         RotateInDirectionOfMovement::default(),
         TiltInDirectionOfMovement::default(),
+        ReplaceMaterialMarker {
+            material: OutlineMaterial {
+                color: LinearRgba::BLUE,
+                color_texture: Some(asset_server.load("textures/bevy.png")),
+                alpha_mode: AlphaMode::Blend,
+            },
+        },
     ));
 }
 #[derive(Component)]

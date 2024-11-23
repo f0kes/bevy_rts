@@ -761,6 +761,7 @@ dependencies = [
  "input_actions",
  "log",
  "movement",
+ "outline",
  "rand",
  "ron",
  "serde",
@@ -3599,6 +3600,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "52f0d54bde9774d3a51dcf281a5def240c71996bc6ca05d2c847ec8b2b216166"
 dependencies = [
  "libredox",
+]
+
+[[package]]
+name = "outline"
+version = "0.1.0"
+dependencies = [
+ "bevy",
 ]
 
 [[package]]

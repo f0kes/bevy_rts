@@ -13,10 +13,13 @@ use bevy::DefaultPlugins;
 use bevy_editor_pls::prelude::*;
 
 use bevy_game::player::PlayerPlugin;
+
 use blenvy::{
     BlenvyPlugin, BlueprintAnimationPlayerLink, BlueprintAnimations,
     BlueprintInfo, GameWorldTag, HideUntilReady, SpawnBlueprint,
 };
+use outline::plugin::CustomMaterialPlugin;
+use outline::shader_material::OutlineMaterial;
 
 use std::io::Cursor;
 use std::time::Duration;
@@ -72,6 +75,7 @@ fn main() {
     app.add_systems(Startup, setup);
     app.add_systems(Update, animation_control);
     app.add_plugins(PlayerPlugin);
+    app.add_plugins(CustomMaterialPlugin::<OutlineMaterial>::default());
     app.add_plugins(PhysicsPlugins::default());
     //app.add_plugins(PhysicsDebugPlugin::default());
     app.run();

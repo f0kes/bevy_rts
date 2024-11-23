@@ -7,7 +7,12 @@ edition = "2021"
 exclude = ["dist", "build", "assets", "credits"]
 
 [workspace]
-members = [ "crates/input_actions","crates/movement", "directional_animation", "mobile"]
+members = [
+    "crates/input_actions",
+    "crates/movement", "crates/outline",
+    "directional_animation",
+    "mobile",
+]
 
 [dependencies]
 bevy = { version = "0.14", default-features = false, features = [
@@ -53,11 +58,14 @@ log = { version = "0.4", features = [
 directional_animation = { path = "./directional_animation" }
 movement = { path = "./crates/movement" }
 input_actions = { path = "./crates/input_actions" }
+outline = { path = "./crates/outline" }
 serde = { version = "1.0.214", features = ["derive"] }
 ron = "0.8.1"
 bevy_editor_pls.workspace = true
 blenvy = "0.1.0-alpha.1"
 avian3d.workspace = true
+
+
 
 [profile.dev.package."*"]
 opt-level = 3
