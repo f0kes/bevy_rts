@@ -21,7 +21,7 @@ impl Default for RotateInDirectionOfMovement {
 
 #[derive(Component, Reflect)]
 pub struct TiltInDirectionOfMovement {
-    previous_rot: Quat,
+    current_tilt: Quat,
     max_tilt_radians: f32,
     min_speed: f32,
     max_speed: f32,
@@ -30,8 +30,8 @@ pub struct TiltInDirectionOfMovement {
 impl Default for TiltInDirectionOfMovement {
     fn default() -> Self {
         Self {
-            previous_rot: Quat::IDENTITY,
-            max_tilt_radians: std::f32::consts::FRAC_PI_4,
+            current_tilt: Quat::IDENTITY,
+            max_tilt_radians: std::f32::consts::FRAC_PI_8,
             min_speed: 10.,
             max_speed: 20.,
             tilt_smoothing: 0.1,
@@ -71,9 +71,11 @@ pub fn tilt_in_direction_of_acceleration(
         &Acceleration,
     )>,
 ) {
-    let dt = time.delta_seconds() * 60.0;
-
+    
     for (mut tilt, mut transform, accel) in query.iter_mut() {
+        let dt = time.delta_seconds();
+        transform.rotation = transform.rotation * tilt.current_tilt.inverse();
+
         let accel_len = accel.0.length();
         let target_rotation = if accel_len < tilt.min_speed {
             Quat::IDENTITY
@@ -81,10 +83,10 @@ pub fn tilt_in_direction_of_acceleration(
             let tilt_factor = (accel_len.min(tilt.max_speed) - tilt.min_speed)
                 / (tilt.max_speed - tilt.min_speed);
 
-            let accel_direction =
-                Vec3::new(accel.0.x, 0.0, accel.0.z).normalize_or(Vec3::Y);
-            let tilt_axis = Vec3::Y.cross(accel_direction);
-
+            let local_accel = transform.rotation.inverse()
+                * Vec3::new(accel.0.x, 0.0, accel.0.z);
+            let accel_direction = local_accel.normalize_or(Vec3::Y);
+            let tilt_axis = Vec3::Y.cross(accel_direction.into());
             if tilt_axis.length_squared() > 0.0 {
                 Quat::from_axis_angle(
                     tilt_axis.normalize(),
@@ -95,8 +97,11 @@ pub fn tilt_in_direction_of_acceleration(
             }
         };
 
-        transform.rotation =
-            target_rotation * tilt.previous_rot.inverse() * transform.rotation;
-        tilt.previous_rot = target_rotation;
+        // Calculate and store new tilt
+        let new_tilt = tilt.current_tilt.slerp(target_rotation, tilt.tilt_smoothing);
+        tilt.current_tilt = new_tilt;
+
+        // Apply the new tilt
+        transform.rotation = transform.rotation * new_tilt;
     }
 }

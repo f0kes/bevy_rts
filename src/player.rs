@@ -46,7 +46,7 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
         RigidBody::Kinematic,
         LockedAxes::new().lock_rotation_z().lock_rotation_x(),
         RotateInDirectionOfMovement::default(),
-        //TiltInDirectionOfMovement::default(),
+        TiltInDirectionOfMovement::default(),
     ));
 }
 #[derive(Component)]
