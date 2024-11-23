@@ -4,6 +4,7 @@
 use avian3d::prelude::{DebugRender, PhysicsDebugPlugin, PhysicsGizmos};
 use avian3d::PhysicsPlugins;
 use bevy::asset::AssetMetaCheck;
+use bevy::color::palettes::css::{RED, WHITE};
 use bevy::prelude::*;
 use bevy::render::texture::ImageSamplerDescriptor;
 use bevy::window::PrimaryWindow;
@@ -27,9 +28,13 @@ pub struct Dude;
 
 fn main() {
     let mut app = App::new();
+    let gismo_config = GizmoConfig {
+        enabled: false,
+        ..default()
+    };
     //app.insert_resource(Msaa::Off);
 
-    app.insert_resource(ClearColor(Color::linear_rgb(0.4, 0.4, 0.4)));
+    //app.insert_resource(ClearColor(Color::linear_rgb(0.4, 0.4, 0.4)));
 
     let window_plugin = WindowPlugin {
         primary_window: Some(Window {
@@ -59,7 +64,7 @@ fn main() {
             .set(image_plugin),
     );
     app.add_plugins(EditorPlugin::default());
-    app.add_plugins(BlenvyPlugin::default());
+    //app.add_plugins(BlenvyPlugin::default());
     app.register_type::<Dude>();
 
     //app.add_plugins(GamePlugin);
@@ -68,14 +73,14 @@ fn main() {
     app.add_systems(Update, animation_control);
     app.add_plugins(PlayerPlugin);
     app.add_plugins(PhysicsPlugins::default());
-    app.add_plugins(PhysicsDebugPlugin::default());
+    //app.add_plugins(PhysicsDebugPlugin::default());
     app.run();
     app.insert_gizmo_config(
         PhysicsGizmos {
             aabb_color: Some(Color::linear_rgb(0., 0., 1.)),
             ..default()
         },
-        GizmoConfig::default(),
+        gismo_config,
     );
 }
 
@@ -100,13 +105,20 @@ fn set_window_icon(
     };
 }
 
-fn setup(mut commands: Commands) {
+fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn((
-        BlueprintInfo::from_path("levels/World.glb"),
-        SpawnBlueprint,
-        HideUntilReady,
-        GameWorldTag,
+        SceneBundle {
+            scene: asset_server.load("levels/World.glb#Scene0"),
+            ..Default::default()
+        },
+        // SpawnBlueprint,
+        // HideUntilReady,
+        // GameWorldTag,
     ));
+    commands.insert_resource(AmbientLight {
+        color: WHITE.into(),
+        brightness: 500.,
+    });
     //commands.spawn(DebugRender::default());
 }
 

@@ -2,9 +2,14 @@ use avian3d::prelude::*;
 
 use bevy::prelude::*;
 
-use input_actions::{action::Action, input_map::InputMap, plugin::InputActionsPlugin};
+use input_actions::{
+    action::Action, input_map::InputMap, plugin::InputActionsPlugin,
+};
 use movement::movement::MoveInput;
-use movement::plugin::{MovementPlugin,MovementPluginConfig};
+use movement::plugin::{MovementPlugin, MovementPluginConfig};
+use movement::rotate::{
+    RotateInDirectionOfMovement, TiltInDirectionOfMovement,
+};
 
 pub struct PlayerPlugin;
 
@@ -38,8 +43,10 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
         },
         Player,
         Collider::sphere(0.47),
-        RigidBody::Dynamic,
+        RigidBody::Kinematic,
         LockedAxes::new().lock_rotation_z().lock_rotation_x(),
+        RotateInDirectionOfMovement::default(),
+        //TiltInDirectionOfMovement::default(),
     ));
 }
 #[derive(Component)]
@@ -62,7 +69,7 @@ pub fn move_player(
             main_transform = transform.clone();
         }
     }
-    let mut  mv = Vec3::ZERO;
+    let mut mv = Vec3::ZERO;
     if action_input.pressed(Action::MoveForward) {
         mv.z += 1.0;
     }
