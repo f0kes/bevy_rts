@@ -1,8 +1,10 @@
-use crate::{animation_defintions::HiveMindAnimationTypes, GameState};
+
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
 use bevy_kira_audio::AudioSource;
 use directional_animation::ron_generation::plugin::{AnimationLoadingState, LoadAnimationPlugin};
+
+use crate::GameState;
 
 pub struct LoadingPlugin;
 
@@ -29,7 +31,7 @@ impl Plugin for LoadingPlugin {
                 .load_collection::<AudioAssets>()
                 .load_collection::<TextureAssets>(),
         );
-        app.add_plugins(LoadAnimationPlugin::<HiveMindAnimationTypes>::default());
+        
         app.add_systems(
             Update,
             check_loading_complete.run_if(in_state(GameState::Loaded)),

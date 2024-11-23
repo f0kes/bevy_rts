@@ -2,5 +2,9 @@
   assets:
    [ 
     ("Player", File ( path: "blueprints/Player.glb" )),
+    ("King", File ( path: "blueprints/King.glb" )),
+    ("tripo_material_dcc9a1eb-b6bb-41c6-a423-1f69fdbfad49", File ( path: "materials/tripo_material_dcc9a1eb-b6bb-41c6-a423-1f69fdbfad49.glb" )),
+    ("Dude", File ( path: "blueprints/Dude.glb" )),
+    ("Material.003", File ( path: "materials/Material.003.glb" )),
    ]
 )

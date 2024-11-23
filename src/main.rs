@@ -1,36 +1,33 @@
 // disable console on windows for release builds
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use avian3d::prelude::{DebugRender, PhysicsDebugPlugin, PhysicsGizmos};
+use avian3d::PhysicsPlugins;
+use bevy::asset::AssetMetaCheck;
 use bevy::prelude::*;
 use bevy::render::texture::ImageSamplerDescriptor;
 use bevy::window::PrimaryWindow;
 use bevy::winit::WinitWindows;
 use bevy::DefaultPlugins;
-use bevy::{asset::AssetMetaCheck, render::texture::ImageSampler};
 use bevy_editor_pls::prelude::*;
-use bevy_game::animation_defintions::HiveMindAnimationTypes;
-use bevy_game::GamePlugin;
-use blenvy::{BlenvyPlugin, BlueprintInfo, GameWorldTag, HideUntilReady, SpawnBlueprint};
-use directional_animation::ron_generation::plugin::{AnimatePlugin, LoadAnimationPlugin};
+
+use bevy_game::player::PlayerPlugin;
+use blenvy::{
+    BlenvyPlugin, BlueprintAnimationPlayerLink, BlueprintAnimations,
+    BlueprintInfo, GameWorldTag, HideUntilReady, SpawnBlueprint,
+};
 
 use std::io::Cursor;
+use std::time::Duration;
 use winit::window::Icon;
 
 #[derive(Component, Reflect)]
 #[reflect(Component)]
-struct Player {
-    strength: f32,
-    perception: f32,
-    endurance: f32,
-    charisma: f32,
-    intelligence: f32,
-    agility: f32,
-    luck: f32,
-}
+pub struct Dude;
 
 fn main() {
     let mut app = App::new();
-    app.insert_resource(Msaa::Off);
+    //app.insert_resource(Msaa::Off);
 
     app.insert_resource(ClearColor(Color::linear_rgb(0.4, 0.4, 0.4)));
 
@@ -63,12 +60,23 @@ fn main() {
     );
     app.add_plugins(EditorPlugin::default());
     app.add_plugins(BlenvyPlugin::default());
-    app.register_type::<Player>();
-    app.add_plugins(AnimatePlugin::<HiveMindAnimationTypes>::default());
+    app.register_type::<Dude>();
+
     //app.add_plugins(GamePlugin);
     app.add_systems(Startup, set_window_icon);
     app.add_systems(Startup, setup);
+    app.add_systems(Update, animation_control);
+    app.add_plugins(PlayerPlugin);
+    app.add_plugins(PhysicsPlugins::default());
+    app.add_plugins(PhysicsDebugPlugin::default());
     app.run();
+    app.insert_gizmo_config(
+        PhysicsGizmos {
+            aabb_color: Some(Color::linear_rgb(0., 0., 1.)),
+            ..default()
+        },
+        GizmoConfig::default(),
+    );
 }
 
 // Sets the icon on windows and X11
@@ -99,4 +107,117 @@ fn setup(mut commands: Commands) {
         HideUntilReady,
         GameWorldTag,
     ));
+    //commands.spawn(DebugRender::default());
+}
+
+pub fn animation_control(
+    animated_dudes: Query<
+        (&BlueprintAnimationPlayerLink, &BlueprintAnimations),
+        With<Dude>,
+    >,
+
+    mut animation_players: Query<(
+        &mut AnimationPlayer,
+        &mut AnimationTransitions,
+    )>,
+
+    keycode: Res<ButtonInput<KeyCode>>,
+    // mut entities_with_animations : Query<(&mut AnimationPlayer, &mut BlueprintAnimations)>,
+) {
+    // robots
+    if keycode.just_pressed(KeyCode::Digit1) {
+        println!("scan animation for robots");
+        for (link, animations) in animated_dudes.iter() {
+            let (mut animation_player, mut animation_transitions) =
+                animation_players.get_mut(link.0).unwrap();
+            println!("got some animations");
+            let anim_name = "Idle";
+            animation_transitions
+                .play(
+                    &mut animation_player,
+                    *animations
+                        .named_indices
+                        .get(anim_name)
+                        .expect("animation name should be in the list"),
+                    Duration::from_secs(5),
+                )
+                .repeat();
+        }
+    }
+
+    // foxes
+    if keycode.just_pressed(KeyCode::Digit2) {
+        for (link, animations) in animated_dudes.iter() {
+            let (mut animation_player, mut animation_transitions) =
+                animation_players.get_mut(link.0).unwrap();
+
+            let anim_name = "Run";
+            animation_transitions
+                .play(
+                    &mut animation_player,
+                    *animations
+                        .named_indices
+                        .get(anim_name)
+                        .expect("animation name should be in the list"),
+                    Duration::from_secs(5),
+                )
+                .repeat();
+        }
+    }
+
+    if keycode.just_pressed(KeyCode::Digit3) {
+        for (link, animations) in animated_dudes.iter() {
+            let (mut animation_player, mut animation_transitions) =
+                animation_players.get_mut(link.0).unwrap();
+
+            let anim_name = "Melee";
+            animation_transitions
+                .play(
+                    &mut animation_player,
+                    *animations
+                        .named_indices
+                        .get(anim_name)
+                        .expect("animation name should be in the list"),
+                    Duration::from_secs(5),
+                )
+                .repeat();
+        }
+    }
+
+    if keycode.just_pressed(KeyCode::Digit4) {
+        for (link, animations) in animated_dudes.iter() {
+            let (mut animation_player, mut animation_transitions) =
+                animation_players.get_mut(link.0).unwrap();
+
+            let anim_name = "Hit";
+            animation_transitions
+                .play(
+                    &mut animation_player,
+                    *animations
+                        .named_indices
+                        .get(anim_name)
+                        .expect("animation name should be in the list"),
+                    Duration::from_secs(5),
+                )
+                .repeat();
+        }
+    }
+    if keycode.just_pressed(KeyCode::Digit5) {
+        for (link, animations) in animated_dudes.iter() {
+            let (mut animation_player, mut animation_transitions) =
+                animation_players.get_mut(link.0).unwrap();
+
+            let anim_name = "Dig";
+            animation_transitions
+                .play(
+                    &mut animation_player,
+                    *animations
+                        .named_indices
+                        .get(anim_name)
+                        .expect("animation name should be in the list"),
+                    Duration::from_secs(5),
+                )
+                .repeat();
+        }
+    }
 }
