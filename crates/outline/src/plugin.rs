@@ -1,8 +1,7 @@
-use crate::material_replace::{
-    replace_standart_materials, 
-    replace_standart_materials_keep_texture,
-    TexturableMaterial
-};
+use crate::{material_replace::{
+    replace_standart_materials, replace_standart_materials_keep_texture,
+    TexturableMaterial,
+}, toon_shader::{update_toon_shader, ToonShaderMaterial}};
 use bevy::prelude::*;
 use std::hash::Hash;
 
@@ -47,5 +46,17 @@ where
     fn build(&self, app: &mut App) {
         app.add_plugins(MaterialPlugin::<M>::default())
             .add_systems(Update, replace_standart_materials_keep_texture::<M>);
+    }
+}
+
+#[derive(Default)]
+pub struct ToonShaderPlugin;
+
+impl Plugin for ToonShaderPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_plugins(
+            TexturableMaterialPlugin::<ToonShaderMaterial>::default(),
+        )
+        .add_systems(Update, update_toon_shader);
     }
 }

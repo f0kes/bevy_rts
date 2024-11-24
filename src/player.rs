@@ -10,10 +10,13 @@ use movement::plugin::{MovementPlugin, MovementPluginConfig};
 use movement::rotate::{
     RotateInDirectionOfMovement, TiltInDirectionOfMovement,
 };
+use movement::step_animation::StepAnimation;
 use outline::material_replace::{
     ReplaceMaterialKeepTextureMarker, ReplaceMaterialMarker,
 };
+use outline::plugin::ToonShaderPlugin;
 use outline::shader_material::OutlineMaterial;
+use outline::toon_shader::ToonShaderMaterial;
 
 pub struct PlayerPlugin;
 
@@ -57,12 +60,16 @@ fn spawn_player(
         RotateInDirectionOfMovement::default(),
         TiltInDirectionOfMovement::default(),
         ReplaceMaterialKeepTextureMarker {
-            material: OutlineMaterial {
-                color: LinearRgba::BLUE,
-                color_texture: Some(asset_server.load("textures/bevy.png")),
-                alpha_mode: AlphaMode::Blend,
+            material: ToonShaderMaterial {
+                color: Color::srgb(1.0, 1.0, 1.0),
+                sun_dir: Vec3::new(0.0, 1.0, 1.0),
+                sun_color: Color::srgb(1.0, 1.0, 0.0),
+                camera_pos: Vec3::new(0.0, 0.0, 1.0),
+                ambient_color: Color::srgb(0.0, 1.0, 1.0),
+                base_color_texture: None,
             },
         },
+        StepAnimation::default(),
     ));
 }
 #[derive(Component)]

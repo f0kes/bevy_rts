@@ -18,7 +18,7 @@ use blenvy::{
     BlenvyPlugin, BlueprintAnimationPlayerLink, BlueprintAnimations,
     BlueprintInfo, GameWorldTag, HideUntilReady, SpawnBlueprint,
 };
-use outline::plugin::{CustomMaterialPlugin, TexturableMaterialPlugin};
+use outline::plugin::{CustomMaterialPlugin, TexturableMaterialPlugin, ToonShaderPlugin};
 use outline::shader_material::OutlineMaterial;
 
 use std::io::Cursor;
@@ -35,7 +35,7 @@ fn main() {
         enabled: false,
         ..default()
     };
-    //app.insert_resource(Msaa::Off);
+    app.insert_resource(Msaa::Off);
 
     //app.insert_resource(ClearColor(Color::linear_rgb(0.4, 0.4, 0.4)));
 
@@ -56,15 +56,13 @@ fn main() {
         meta_check: AssetMetaCheck::Never,
         ..default()
     };
-    let image_plugin = ImagePlugin {
-        default_sampler: ImageSamplerDescriptor::nearest(),
-    };
+    
 
     app.add_plugins(
         DefaultPlugins
             .set(window_plugin)
             .set(asset_plugin)
-            .set(image_plugin),
+            
     );
     app.add_plugins(EditorPlugin::default());
     //app.add_plugins(BlenvyPlugin::default());
@@ -76,6 +74,7 @@ fn main() {
     app.add_systems(Update, animation_control);
     app.add_plugins(PlayerPlugin);
     app.add_plugins(TexturableMaterialPlugin::<OutlineMaterial>::default());
+    app.add_plugins(ToonShaderPlugin);
     app.add_plugins(PhysicsPlugins::default());
     //app.add_plugins(PhysicsDebugPlugin::default());
     app.run();
@@ -119,10 +118,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         // HideUntilReady,
         // GameWorldTag,
     ));
-    commands.insert_resource(AmbientLight {
-        color: WHITE.into(),
-        brightness: 500.,
-    });
+   
     //commands.spawn(DebugRender::default());
 }
 

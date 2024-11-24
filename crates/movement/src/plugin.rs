@@ -7,6 +7,7 @@ use crate::rotate::rotate_in_direction_of_movement;
 use crate::rotate::tilt_in_direction_of_acceleration;
 use crate::rotate::RotateInDirectionOfMovement;
 use crate::rotate::TiltInDirectionOfMovement;
+use crate::step_animation::animate_steps;
 const ACCELERATION: f32 = 15.0;
 const MAX_SPEED: f32 = 10.0;
 const DECELERATION: f32 = 15.0;
@@ -30,6 +31,7 @@ impl<T: MoveInput> Plugin for MovementPlugin<T> {
             tilt_in_direction_of_acceleration
                 .after(rotate_in_direction_of_movement),
         );
+        app.add_systems(Update, animate_steps);
     }
 }
 
