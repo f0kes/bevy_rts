@@ -8,21 +8,24 @@ use bevy::{
     },
 };
 
-use crate::{material_replace::TexturableMaterial, plugin::TexturableMaterialPlugin};
+use crate::{
+    material_replace::TexturableMaterial, plugin::TexturableMaterialPlugin,
+};
 pub const TOON_SHADER_HANDLE: Handle<Shader> =
     Handle::weak_from_u128(11079857277321826659);
-
-
 
 #[derive(Asset, AsBindGroup, Reflect, Debug, Clone, Default)]
 #[uniform(0, ToonShaderMaterialUniform)]
 #[reflect(Default, Debug)]
 pub struct ToonShaderMaterial {
     pub color: Color,
+    pub cliff_color: Color,
     pub sun_dir: Vec3,
     pub sun_color: Color,
     pub camera_pos: Vec3,
     pub ambient_color: Color,
+    pub bands: f32,
+
     #[texture(1)]
     #[sampler(2)]
     pub base_color_texture: Option<Handle<Image>>,
@@ -56,10 +59,12 @@ impl AsBindGroupShaderType<ToonShaderMaterialUniform> for ToonShaderMaterial {
     ) -> ToonShaderMaterialUniform {
         ToonShaderMaterialUniform {
             color: self.color.into(),
+            cliff_color: self.cliff_color.into(),
             sun_dir: self.sun_dir,
             sun_color: self.sun_color.into(),
             camera_pos: self.camera_pos,
             ambient_color: self.ambient_color.into(),
+            bands: self.bands,
         }
     }
 }
@@ -67,10 +72,12 @@ impl AsBindGroupShaderType<ToonShaderMaterialUniform> for ToonShaderMaterial {
 #[derive(Clone, Default, ShaderType)]
 pub struct ToonShaderMaterialUniform {
     pub color: LinearRgba,
+    pub cliff_color: LinearRgba,
     pub sun_dir: Vec3,
     pub sun_color: LinearRgba,
     pub camera_pos: Vec3,
     pub ambient_color: LinearRgba,
+    pub bands: f32,
 }
 
 // #[derive(Eq, PartialEq, Hash, Clone)]

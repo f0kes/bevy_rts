@@ -1,10 +1,15 @@
 // disable console on windows for release builds
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use avian3d::prelude::{DebugRender, PhysicsDebugPlugin, PhysicsGizmos};
+use avian3d::prelude::{
+    ColliderConstructor, CollisionMargin, DebugRender, PhysicsDebugPlugin,
+    PhysicsGizmos,
+};
 use avian3d::PhysicsPlugins;
 use bevy::asset::AssetMetaCheck;
 use bevy::color::palettes::css::{RED, WHITE};
+use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
+use bevy::pbr::CascadeShadowConfigBuilder;
 use bevy::prelude::*;
 use bevy::render::texture::ImageSamplerDescriptor;
 use bevy::window::PrimaryWindow;
@@ -18,9 +23,15 @@ use blenvy::{
     BlenvyPlugin, BlueprintAnimationPlayerLink, BlueprintAnimations,
     BlueprintInfo, GameWorldTag, HideUntilReady, SpawnBlueprint,
 };
-use outline::plugin::{CustomMaterialPlugin, TexturableMaterialPlugin, ToonShaderPlugin};
+use camera::plugin::SmoothCameraPlugin;
+use outline::plugin::{
+    CustomMaterialPlugin, TexturableMaterialPlugin, ToonShaderPlugin,
+};
 use outline::shader_material::OutlineMaterial;
+use outline::toon_shader::{ToonShaderMaterial, ToonShaderSun};
+use world_gen::mesh::{create_subdivided_plane, TerrainPlaneOptions};
 
+use std::f32::consts::PI;
 use std::io::Cursor;
 use std::time::Duration;
 use winit::window::Icon;
@@ -32,7 +43,7 @@ pub struct Dude;
 fn main() {
     let mut app = App::new();
     let gismo_config = GizmoConfig {
-        enabled: false,
+        enabled: true,
         ..default()
     };
     app.insert_resource(Msaa::Off);
@@ -56,14 +67,8 @@ fn main() {
         meta_check: AssetMetaCheck::Never,
         ..default()
     };
-    
 
-    app.add_plugins(
-        DefaultPlugins
-            .set(window_plugin)
-            .set(asset_plugin)
-            
-    );
+    app.add_plugins(DefaultPlugins.set(window_plugin).set(asset_plugin));
     app.add_plugins(EditorPlugin::default());
     //app.add_plugins(BlenvyPlugin::default());
     app.register_type::<Dude>();
@@ -71,13 +76,15 @@ fn main() {
     //app.add_plugins(GamePlugin);
     app.add_systems(Startup, set_window_icon);
     app.add_systems(Startup, setup);
-    app.add_systems(Update, animation_control);
+    //app.add_systems(Update, animation_control);
     app.add_plugins(PlayerPlugin);
     app.add_plugins(TexturableMaterialPlugin::<OutlineMaterial>::default());
     app.add_plugins(ToonShaderPlugin);
     app.add_plugins(PhysicsPlugins::default());
-    //app.add_plugins(PhysicsDebugPlugin::default());
-    app.run();
+    app.add_plugins(PhysicsDebugPlugin::default());
+    app.add_plugins(FrameTimeDiagnosticsPlugin::default());
+    app.add_plugins(LogDiagnosticsPlugin::default());
+
     app.insert_gizmo_config(
         PhysicsGizmos {
             aabb_color: Some(Color::linear_rgb(0., 0., 1.)),
@@ -85,6 +92,8 @@ fn main() {
         },
         gismo_config,
     );
+    app.add_plugins(SmoothCameraPlugin);
+    app.run();
 }
 
 // Sets the icon on windows and X11
@@ -108,7 +117,12 @@ fn set_window_icon(
     };
 }
 
-fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn setup(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ToonShaderMaterial>>,
+) {
     commands.spawn((
         SceneBundle {
             scene: asset_server.load("levels/World.glb#Scene0"),
@@ -118,11 +132,61 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         // HideUntilReady,
         // GameWorldTag,
     ));
-   
+    let mesh =
+        meshes.add(create_subdivided_plane(TerrainPlaneOptions::default()));
+    commands.spawn((
+        ColliderConstructor::TrimeshFromMesh,
+        CollisionMargin(1.),
+        MaterialMeshBundle {
+            mesh: mesh,
+            material: materials.add(ToonShaderMaterial {
+                color: Color::srgb(0.7, 1.0, 0.7),
+                cliff_color: Color::srgb(0.7, 1.0, 0.7), //cliff_color: Color::srgb(0.5, 0.5, 0.3),
+                sun_dir: Vec3::new(0.0, 1.0, 1.0),
+                sun_color: Color::srgb(1.0, 1.0, 0.0),
+                camera_pos: Vec3::new(0.0, 0.0, 1.0),
+                ambient_color: Color::srgb(0.0, 1.0, 1.0),
+                bands: 16.0,
+                base_color_texture: None,
+            }),
+            transform: Transform::from_xyz(0.0, 0.0, 0.0),
+            ..default()
+        },
+    ));
+    commands.spawn((
+        DirectionalLightBundle {
+            directional_light: DirectionalLight {
+                illuminance: light_consts::lux::OVERCAST_DAY,
+                shadows_enabled: true,
+                ..default()
+            },
+            transform: Transform {
+                translation: Vec3::new(0.0, 2.0, 0.0),
+                rotation: Quat::from_rotation_x(-PI / 4.),
+                ..default()
+            },
+            // The default cascade config is designed to handle large scenes.
+            // As this example has a much smaller world, we can tighten the shadow
+            // bounds for better visual quality.
+            cascade_shadow_config: CascadeShadowConfigBuilder {
+                first_cascade_far_bound: 4.0,
+                maximum_distance: 10.0,
+                ..default()
+            }
+            .into(),
+            ..default()
+        },
+        ToonShaderSun,
+    ));
+    commands.insert_resource(AmbientLight {
+        color: Color::srgb(0.1, 0.1, 0.6),
+        brightness: 500.,
+    });
+
     //commands.spawn(DebugRender::default());
 }
 
-pub fn animation_control(
+/* pub fn animation_control(
     animated_dudes: Query<
         (&BlueprintAnimationPlayerLink, &BlueprintAnimations),
         With<Dude>,
@@ -233,3 +297,4 @@ pub fn animation_control(
         }
     }
 }
+ */

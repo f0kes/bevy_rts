@@ -2,6 +2,7 @@ use avian3d::prelude::*;
 
 use bevy::prelude::*;
 
+use camera::camera::spawn_camera_to_follow;
 use input_actions::{
     action::Action, input_map::InputMap, plugin::InputActionsPlugin,
 };
@@ -16,7 +17,7 @@ use outline::material_replace::{
 };
 use outline::plugin::ToonShaderPlugin;
 use outline::shader_material::OutlineMaterial;
-use outline::toon_shader::ToonShaderMaterial;
+use outline::toon_shader::{ToonShaderMainCamera, ToonShaderMaterial};
 
 pub struct PlayerPlugin;
 
@@ -47,30 +48,38 @@ fn spawn_player(
     mut materials: ResMut<Assets<OutlineMaterial>>,
 ) {
     let player_handle = asset_server.load("models/King.glb#Scene0");
-    commands.spawn((
-        SceneBundle {
-            scene: player_handle,
-
-            ..Default::default()
-        },
-        Player,
-        Collider::sphere(0.47),
-        RigidBody::Kinematic,
-        LockedAxes::new().lock_rotation_z().lock_rotation_x(),
-        RotateInDirectionOfMovement::default(),
-        TiltInDirectionOfMovement::default(),
-        ReplaceMaterialKeepTextureMarker {
-            material: ToonShaderMaterial {
-                color: Color::srgb(1.0, 1.0, 1.0),
-                sun_dir: Vec3::new(0.0, 1.0, 1.0),
-                sun_color: Color::srgb(1.0, 1.0, 0.0),
-                camera_pos: Vec3::new(0.0, 0.0, 1.0),
-                ambient_color: Color::srgb(0.0, 1.0, 1.0),
-                base_color_texture: None,
+    let p_id = commands
+        .spawn((
+            SceneBundle {
+                scene: player_handle,
+                transform: Transform::from_xyz(0., 10., 1.),
+                ..Default::default()
             },
-        },
-        StepAnimation::default(),
-    ));
+            Player,
+            Collider::sphere(0.47),
+            RigidBody::Kinematic,
+            
+            LockedAxes::new().lock_rotation_z().lock_rotation_x(),
+            RotateInDirectionOfMovement::default(),
+            TiltInDirectionOfMovement::default(),
+            ReplaceMaterialKeepTextureMarker {
+                material: ToonShaderMaterial {
+                    color: Color::srgb(1.0, 1.0, 1.0),
+                    cliff_color: Color::srgb(1.0, 1.0, 1.0),
+                    sun_dir: Vec3::new(0.0, 1.0, 1.0),
+                    sun_color: Color::srgb(1.0, 1.0, 0.0),
+                    camera_pos: Vec3::new(0.0, 0.0, 1.0),
+                    ambient_color: Color::srgb(0.0, 1.0, 1.0),
+                    base_color_texture: None,
+                    bands: 3.0,
+                },
+            },
+            //StepAnimation::default(),
+        ))
+        .id();
+    let (mut commands, _rig_id, camera_id) =
+        spawn_camera_to_follow(p_id, commands);
+    commands.entity(camera_id).insert(ToonShaderMainCamera);
 }
 #[derive(Component)]
 pub struct Move(Vec3);

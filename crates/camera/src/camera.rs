@@ -1,25 +1,17 @@
-/* 
-use bevy::prelude::*;
-use bevy::window::PrimaryWindow;
 use avian3d::prelude::*;
-
-pub struct CameraPlugin;
-
-impl Plugin for CameraPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_systems(Update, update_follow_camera)
-            .add_systems(Update, update_camera_input)
-            .add_systems(Update, client_update_camera_target)
-            .register_type::<CameraHolder>()
-            .register_type::<CameraMode>();
-    }
-}
+use bevy::math::VectorSpace;
+use bevy::prelude::*;
+use bevy::render::camera::ScalingMode;
+use bevy::window::PrimaryWindow;
 
 #[derive(Reflect)]
 pub enum CameraMode {
     FollowEntity { target: Option<Entity>, weight: f32 },
     Free,
 }
+
+#[derive(Component)]
+pub struct MainCamera;
 
 #[derive(Component, Reflect)]
 pub struct CameraHolder {
@@ -51,6 +43,12 @@ impl CameraHolder {
             ..default()
         }
     }
+}
+
+#[derive(Bundle)]
+pub struct CameraRigBundle {
+    pub camera_input: CameraInput,
+    pub camera_holder: CameraHolder,
 }
 
 #[derive(Component)]
@@ -110,7 +108,28 @@ impl RemoveZ for Vec3 {
     }
 }
 
-pub fn client_update_camera_target(
+pub fn get_default_orthographic_projection() -> Projection {
+    Projection::Orthographic(OrthographicProjection {
+        near: 0.1,
+        far: 200.,
+        viewport_origin: Vec2 { x: 0.5, y: 0.5 },
+        scaling_mode: ScalingMode::FixedVertical(15.0),
+        ..default()
+    })
+}
+pub fn get_default_perspective_projection() -> Projection {
+    
+
+    Projection::Perspective(PerspectiveProjection {
+        fov: std::f32::consts::PI / 6.0,
+        near: 0.1,
+        far: 200.0,
+        aspect_ratio: 1.0,
+        ..default()
+    })
+}
+
+/* pub fn client_update_camera_target(
     mut commands: Commands,
     mut controlled_player_query: Query<Entity, With<ControlledPlayer>>,
     unit_query: Query<(Entity, &ControlledBy)>,
@@ -127,56 +146,68 @@ pub fn client_update_camera_target(
             }
         }
     }
-}
+} */
 
 pub fn update_camera_input(
-    mut commands: Commands,
-    mut camera_query: Query<(&Camera, Entity, &Transform, &GlobalTransform)>,
-    mut camera_input_query: Query<(&CameraInput, Entity)>,
-    q_windows: Query<&Window, With<PrimaryWindow>>,
-    rapier_context: Res<RapierContext>,
+    mut camera_query: Query<(&CameraInput, Entity, &mut Transform)>,
+    windows: Query<&Window, With<PrimaryWindow>>,
+    time: Res<Time>,
 ) {
-    let mut cursor_pos = Vec2::ZERO;
-    for window in q_windows.iter() {
-        if let Some(cursor_position) = window.cursor_position() {
-            cursor_pos = cursor_position;
-        } else {
-            return;
-        }
-    }
-    //println!("Cursor viewport: {:?}", cursor_viewport);
-    for (
-        camera_component,
-        _camera_entity,
-        _camera_transform,
-        camera_global_tr,
-    ) in camera_query.iter_mut()
-    {
-        if let Some(ray) =
-            camera_component.viewport_to_world(camera_global_tr, cursor_pos)
-        {
-            let query_filter = QueryFilter::default();
+    let window = windows.single();
+    if let Some(cursor_pos) = window.cursor_position() {
+        // Convert to normalized device coordinates (-1 to 1)
+        let ndc_x = (cursor_pos.x / window.width() * 2.0) - 1.0;
+        let ndc_y = (cursor_pos.y / window.height() * 2.0) - 1.0;
 
-            if let Some((_entity, toi)) = rapier_context.cast_ray(
-                ray.origin,
-                ray.direction.into(),
-                f32::MAX,
-                false,
-                query_filter,
-            ) {
-                let hit_pos = ray.origin + ray.direction * toi;
+        // Define dead zone in the middle of the screen
+        let dead_zone = 0.0;
+        let move_speed = 100.0;
 
-                for (_camera_input, input_entity) in
-                    camera_input_query.iter_mut()
-                {
-                    let camera_input = CameraInput {
-                        pos: hit_pos,
-                        zoom: 1.0,
-                    };
-                    commands.entity(input_entity).insert(camera_input);
-                }
+        for (_input, _entity, mut transform) in camera_query.iter_mut() {
+            // Only move if cursor is outside dead zone
+            if ndc_x.abs() > dead_zone {
+                transform.translation.x += ndc_x ;
+            }
+            if ndc_y.abs() > dead_zone {
+                transform.translation.z += ndc_y ;
             }
         }
     }
 }
- */
+pub fn spawn_camera_to_follow<'a, 'b>(
+    entity_to_follow: Entity,
+    mut commands: Commands<'a, 'b>,
+) -> (Commands<'a, 'b>, Entity, Entity) {
+    println!("Spawning camera");
+    let camera_rig = commands
+        .spawn(TransformBundle::from_transform(Transform {
+            translation: Vec3::new(0.0, 0.0, 0.0),
+            rotation: Quat::from_euler(EulerRot::XYZ, 0.0, 0.0, 0.0),
+            scale: Vec3::ONE,
+        }))
+        .insert(CameraHolder {
+            mode: CameraMode::FollowEntity {
+                target: Some(entity_to_follow),
+                weight: 0.35,
+            },
+            lerp_speed: 5.0,
+            offset: Vec3::new(0., 10., -10.),
+        })
+        .insert(CameraInput {
+            pos: Default::default(),
+            zoom: 0.0,
+        })
+        .id();
+
+    let camera = commands
+        .spawn(Camera3dBundle {
+            transform: Transform::from_translation(Vec3::new(0.0, 15.0, 35.0))
+                .looking_at(Vec3::ZERO, Vec3::Y),
+            projection: get_default_perspective_projection(),
+            ..default()
+        })
+        .insert(MainCamera)
+        .set_parent(camera_rig)
+        .id();
+    return (commands, camera_rig, camera);
+}
