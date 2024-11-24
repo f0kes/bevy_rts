@@ -4,7 +4,8 @@ use bevy::prelude::*;
 
 #[derive(Component, Debug, Reflect)]
 pub struct Acceleration(pub Vec3);
-
+#[derive(Component, Debug, Reflect)]
+pub struct ApplyGravity;
 pub trait MoveInput: Component {
     fn direction(&self) -> Vec3;
 }
@@ -13,9 +14,9 @@ pub fn move_unit<T: MoveInput>(
     mut commands: Commands,
     time: Res<Time>,
     movement_config: Res<MovementPluginConfig>,
-    mut query: Query<(Entity, Option<&mut LinearVelocity>, &T)>,
+    mut query: Query<(Entity, &mut LinearVelocity, &T)>,
 ) {
-    for (entity, velocity_opt, input) in query.iter_mut() {
+    for (entity, mut velocity, input) in query.iter_mut() {
         let mut direction = input.direction();
 
         if direction.length_squared() > 0.1 {
@@ -23,10 +24,8 @@ pub fn move_unit<T: MoveInput>(
                 direction = direction.normalize();
             }
             let accel = direction * movement_config.default_acceleration;
-            let mut velocity_vec = Vec3::ZERO;
-            if let Some(velocity) = velocity_opt {
-                velocity_vec = velocity.0;
-            }
+            let mut velocity_vec = velocity.0;
+            
             let new_velocity = velocity_vec + accel * time.delta_seconds();
             let clamped_velocity =
                 if new_velocity.length() <= movement_config.default_max_speed {
@@ -34,37 +33,39 @@ pub fn move_unit<T: MoveInput>(
                 } else {
                     new_velocity.normalize() * velocity_vec.length()
                 };
+            velocity.0 = clamped_velocity;
             commands
                 .entity(entity)
-                .insert(LinearVelocity(clamped_velocity))
+                
                 .insert(Acceleration(accel));
         } else {
-            if let Some(velocity) = velocity_opt {
-                let decel = velocity.0.normalize_or_zero()
-                    * movement_config.default_deceleration;
-                let new_velocity = velocity.0 - decel * time.delta_seconds();
-                let clamped_velocity = if new_velocity.length() < 1.0 {
-                    Vec3::new(0.0, velocity.0.y, 0.0)
-                } else {
-                    new_velocity
-                };
-                commands
-                    .entity(entity)
-                    .insert(LinearVelocity(clamped_velocity))
-                    .insert(Acceleration(decel));
+            let horizontal_velocity =
+                Vec3::new(velocity.0.x, 0.0, velocity.0.z);
+            let decel = horizontal_velocity.normalize_or_zero()
+                * movement_config.default_deceleration;
+            let new_velocity =
+                horizontal_velocity - decel * time.delta_seconds();
+
+            // Only modify X and Z components if they need to be zeroed
+            if new_velocity.length() < 1.0 {
+                velocity.0.x = 0.0;
+                velocity.0.z = 0.0;
+            } else {
+                velocity.0.x = new_velocity.x;
+                velocity.0.z = new_velocity.z;
             }
+            commands.entity(entity).insert(Acceleration(decel));
         }
     }
 }
 
 pub fn apply_gravity(
-    mut commands: Commands,
     time: Res<Time>,
     gravity: Res<Gravity>,
-    mut query: Query<(Entity, &mut LinearVelocity)>,
+    mut query: Query<(Entity, &mut LinearVelocity), With<ApplyGravity>>,
 ) {
-    for (entity, velocity) in query.iter_mut() {
+    for (entity, mut velocity) in query.iter_mut() {
         let new_velocity = velocity.0 + gravity.0 * time.delta_seconds();
-        commands.entity(entity).insert(LinearVelocity(new_velocity));
+        velocity.0 = new_velocity;
     }
 }

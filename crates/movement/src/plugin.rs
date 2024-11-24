@@ -1,7 +1,12 @@
+use avian3d::prelude::PostProcessCollisions;
+use avian3d::prelude::SolverSet;
 use bevy::prelude::*;
 
+use crate::collide_and_slide;
+use crate::movement::apply_gravity;
 use crate::movement::move_unit;
 
+use crate::collide_and_slide::collide_and_slide;
 use crate::movement::MoveInput;
 use crate::rotate::rotate_in_direction_of_movement;
 use crate::rotate::tilt_in_direction_of_acceleration;
@@ -22,19 +27,31 @@ impl<T: MoveInput> Plugin for MovementPlugin<T> {
     fn build(&self, app: &mut App) {
         app.register_type::<RotateInDirectionOfMovement>();
         app.register_type::<TiltInDirectionOfMovement>();
-        app.add_systems(Update, move_unit::<T>);
-        //app.add_systems(Update, apply_gravity);
-        app.insert_resource(self.config.clone());
-        app.add_systems(Update, rotate_in_direction_of_movement);
+        
+        // Create a base set for movement systems
         app.add_systems(
             Update,
-            tilt_in_direction_of_acceleration
-                .after(rotate_in_direction_of_movement),
+            (
+                move_unit::<T>,
+                apply_gravity,
+                rotate_in_direction_of_movement,
+                tilt_in_direction_of_acceleration
+                    .after(rotate_in_direction_of_movement),
+                animate_steps,
+            )
         );
-        app.add_systems(Update, animate_steps);
+        
+        app.insert_resource(self.config.clone());
+        
+        // Add collide_and_slide after all other systems that modify LinearVelocity
+        app.add_systems(
+            Update,
+            collide_and_slide
+                .after(move_unit::<T>)
+                .after(apply_gravity)
+        );
     }
 }
-
 impl<T: MoveInput> MovementPlugin<T> {
     pub fn new(config: MovementPluginConfig) -> Self {
         Self {

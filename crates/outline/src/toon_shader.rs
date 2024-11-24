@@ -30,6 +30,18 @@ pub struct ToonShaderMaterial {
     #[sampler(2)]
     pub base_color_texture: Option<Handle<Image>>,
 }
+pub fn default_toon_shader_material() -> ToonShaderMaterial {
+    ToonShaderMaterial {
+        color: Color::WHITE,
+        cliff_color: Color::WHITE,
+        sun_dir: Vec3::new(0.0, 1.0, 0.0),
+        sun_color: Color::WHITE,
+        camera_pos: Vec3::ZERO,
+        ambient_color: Color::WHITE,
+        bands: 3.0,
+        base_color_texture: None,
+    }
+}
 impl TexturableMaterial for ToonShaderMaterial {
     fn set_texture(&mut self, texture: Handle<Image>) {
         self.base_color_texture = Some(texture);

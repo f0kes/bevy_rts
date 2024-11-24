@@ -6,7 +6,8 @@ use camera::camera::spawn_camera_to_follow;
 use input_actions::{
     action::Action, input_map::InputMap, plugin::InputActionsPlugin,
 };
-use movement::movement::MoveInput;
+use movement::collide_and_slide::CollideAndSlide;
+use movement::movement::{ApplyGravity, MoveInput};
 use movement::plugin::{MovementPlugin, MovementPluginConfig};
 use movement::rotate::{
     RotateInDirectionOfMovement, TiltInDirectionOfMovement,
@@ -17,7 +18,9 @@ use outline::material_replace::{
 };
 use outline::plugin::ToonShaderPlugin;
 use outline::shader_material::OutlineMaterial;
-use outline::toon_shader::{ToonShaderMainCamera, ToonShaderMaterial};
+use outline::toon_shader::{
+    default_toon_shader_material, ToonShaderMainCamera, ToonShaderMaterial,
+};
 
 pub struct PlayerPlugin;
 
@@ -58,23 +61,15 @@ fn spawn_player(
             Player,
             Collider::sphere(0.47),
             RigidBody::Kinematic,
-            
             LockedAxes::new().lock_rotation_z().lock_rotation_x(),
             RotateInDirectionOfMovement::default(),
             TiltInDirectionOfMovement::default(),
             ReplaceMaterialKeepTextureMarker {
-                material: ToonShaderMaterial {
-                    color: Color::srgb(1.0, 1.0, 1.0),
-                    cliff_color: Color::srgb(1.0, 1.0, 1.0),
-                    sun_dir: Vec3::new(0.0, 1.0, 1.0),
-                    sun_color: Color::srgb(1.0, 1.0, 0.0),
-                    camera_pos: Vec3::new(0.0, 0.0, 1.0),
-                    ambient_color: Color::srgb(0.0, 1.0, 1.0),
-                    base_color_texture: None,
-                    bands: 3.0,
-                },
+                material: default_toon_shader_material(),
             },
-            //StepAnimation::default(),
+            StepAnimation::default(),
+            ApplyGravity,
+            CollideAndSlide::default(),
         ))
         .id();
     let (mut commands, _rig_id, camera_id) =
