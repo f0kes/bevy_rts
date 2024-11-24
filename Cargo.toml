@@ -7,7 +7,7 @@ edition = "2021"
 exclude = ["dist", "build", "assets", "credits"]
 
 [workspace]
-members = [
+members = [ "crates/camera",
     "crates/input_actions",
     "crates/movement", "crates/outline",
     "directional_animation",

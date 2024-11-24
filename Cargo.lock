@@ -1544,6 +1544,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "camera"
+version = "0.1.0"
+dependencies = [
+ "avian3d",
+ "bevy",
+]
+
+[[package]]
 name = "cc"
 version = "1.0.92"
 source = "registry+https://github.com/rust-lang/crates.io-index"
