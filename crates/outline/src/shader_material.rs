@@ -6,6 +6,8 @@ use bevy::{
     render::render_resource::{AsBindGroup, ShaderRef},
 };
 
+use crate::material_replace::TexturableMaterial;
+
 // This struct defines the data that will be passed to your shader
 #[derive(Asset, TypePath, AsBindGroup, Debug, Clone)]
 pub struct OutlineMaterial {
@@ -15,6 +17,11 @@ pub struct OutlineMaterial {
     #[sampler(2)]
     pub color_texture: Option<Handle<Image>>,
     pub alpha_mode: AlphaMode,
+}
+impl TexturableMaterial for OutlineMaterial {
+    fn set_texture(&mut self, texture: Handle<Image>) {
+        self.color_texture = Some(texture);
+    }
 }
 
 /// The Material trait is very configurable, but comes with sensible defaults for all methods.

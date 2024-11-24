@@ -10,7 +10,9 @@ use movement::plugin::{MovementPlugin, MovementPluginConfig};
 use movement::rotate::{
     RotateInDirectionOfMovement, TiltInDirectionOfMovement,
 };
-use outline::material_replace::ReplaceMaterialMarker;
+use outline::material_replace::{
+    ReplaceMaterialKeepTextureMarker, ReplaceMaterialMarker,
+};
 use outline::shader_material::OutlineMaterial;
 
 pub struct PlayerPlugin;
@@ -54,7 +56,7 @@ fn spawn_player(
         LockedAxes::new().lock_rotation_z().lock_rotation_x(),
         RotateInDirectionOfMovement::default(),
         TiltInDirectionOfMovement::default(),
-        ReplaceMaterialMarker {
+        ReplaceMaterialKeepTextureMarker {
             material: OutlineMaterial {
                 color: LinearRgba::BLUE,
                 color_texture: Some(asset_server.load("textures/bevy.png")),

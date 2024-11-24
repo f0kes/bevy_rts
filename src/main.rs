@@ -18,7 +18,7 @@ use blenvy::{
     BlenvyPlugin, BlueprintAnimationPlayerLink, BlueprintAnimations,
     BlueprintInfo, GameWorldTag, HideUntilReady, SpawnBlueprint,
 };
-use outline::plugin::CustomMaterialPlugin;
+use outline::plugin::{CustomMaterialPlugin, TexturableMaterialPlugin};
 use outline::shader_material::OutlineMaterial;
 
 use std::io::Cursor;
@@ -75,7 +75,7 @@ fn main() {
     app.add_systems(Startup, setup);
     app.add_systems(Update, animation_control);
     app.add_plugins(PlayerPlugin);
-    app.add_plugins(CustomMaterialPlugin::<OutlineMaterial>::default());
+    app.add_plugins(TexturableMaterialPlugin::<OutlineMaterial>::default());
     app.add_plugins(PhysicsPlugins::default());
     //app.add_plugins(PhysicsDebugPlugin::default());
     app.run();
