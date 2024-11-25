@@ -3,7 +3,7 @@
 
 use avian3d::prelude::{
     ColliderConstructor, CollisionMargin, DebugRender, PhysicsDebugPlugin,
-    PhysicsGizmos,
+    PhysicsGizmos, RigidBody,
 };
 use avian3d::PhysicsPlugins;
 use bevy::asset::AssetMetaCheck;
@@ -137,6 +137,7 @@ fn setup(
     commands.spawn((
         ColliderConstructor::TrimeshFromMesh,
         CollisionMargin(1.),
+        RigidBody::Static,
         MaterialMeshBundle {
             mesh: mesh,
             material: materials.add(ToonShaderMaterial {

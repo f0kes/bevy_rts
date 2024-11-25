@@ -3,6 +3,8 @@ use avian3d::prelude::SolverSet;
 use bevy::prelude::*;
 
 use crate::collide_and_slide;
+use crate::kinematic_character_controller::add_collide_and_slide_to_characters;
+use crate::kinematic_character_controller::apply_frame_velocity;
 use crate::movement::apply_gravity;
 use crate::movement::move_unit;
 
@@ -27,7 +29,7 @@ impl<T: MoveInput> Plugin for MovementPlugin<T> {
     fn build(&self, app: &mut App) {
         app.register_type::<RotateInDirectionOfMovement>();
         app.register_type::<TiltInDirectionOfMovement>();
-        
+
         // Create a base set for movement systems
         app.add_systems(
             Update,
@@ -38,18 +40,17 @@ impl<T: MoveInput> Plugin for MovementPlugin<T> {
                 tilt_in_direction_of_acceleration
                     .after(rotate_in_direction_of_movement),
                 animate_steps,
-            )
+            ),
         );
-        
+
         app.insert_resource(self.config.clone());
-        
+        app.add_systems(Update, add_collide_and_slide_to_characters);
         // Add collide_and_slide after all other systems that modify LinearVelocity
         app.add_systems(
             Update,
-            collide_and_slide
-                .after(move_unit::<T>)
-                .after(apply_gravity)
+            collide_and_slide.after(move_unit::<T>).after(apply_gravity),
         );
+        app.add_systems(PostUpdate, apply_frame_velocity);
     }
 }
 impl<T: MoveInput> MovementPlugin<T> {

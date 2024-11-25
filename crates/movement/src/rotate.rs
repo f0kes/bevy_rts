@@ -3,7 +3,7 @@ use std::f32::consts;
 use avian3d::prelude::*;
 use bevy::prelude::*;
 
-use crate::movement::Acceleration;
+use crate::{kinematic_character_controller::FrameVelocity, movement::Acceleration};
 
 #[derive(Component, Reflect)]
 pub struct RotateInDirectionOfMovement {
@@ -43,17 +43,22 @@ pub fn rotate_in_direction_of_movement(
     mut query: Query<(
         &mut RotateInDirectionOfMovement,
         &mut Transform,
-        &LinearVelocity,
+        &FrameVelocity,
     )>,
+    time: Res<Time>,
 ) {
     for (mut rotate, mut transform, velocity) in query.iter_mut() {
-        if velocity.0.length_squared() < rotate.min_speed_squared {
+        if time.delta_seconds() <= 0.0 {
+            continue;
+        }
+        let vel_per_sec = velocity.0 / time.delta_seconds();
+        if vel_per_sec.length_squared() < rotate.min_speed_squared {
             continue;
         }
 
-        let current_angle = f32::atan2(velocity.0.x, velocity.0.z)
+        let current_angle = f32::atan2(vel_per_sec.x, vel_per_sec.z)
             - std::f32::consts::FRAC_PI_2;
-        let velocity_xz = Vec3::new(velocity.0.x, velocity.0.y, velocity.0.z);
+        let velocity_xz = Vec3::new(vel_per_sec.x, vel_per_sec.y, vel_per_sec.z);
         let local_forward_to_velocity =
             Quat::from_rotation_arc(transform.forward().into(), velocity_xz);
         let rotation_delta = Quat::from_rotation_y(current_angle);

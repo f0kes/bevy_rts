@@ -7,6 +7,9 @@ use input_actions::{
     action::Action, input_map::InputMap, plugin::InputActionsPlugin,
 };
 use movement::collide_and_slide::CollideAndSlide;
+use movement::kinematic_character_controller::{
+    KinematicCharacterController, KinematicCharacterControllerBundle,
+};
 use movement::movement::{ApplyGravity, MoveInput};
 use movement::plugin::{MovementPlugin, MovementPluginConfig};
 use movement::rotate::{
@@ -59,9 +62,14 @@ fn spawn_player(
                 ..Default::default()
             },
             Player,
+            KinematicCharacterControllerBundle::default(),
             Collider::sphere(0.47),
+            SweptCcd::default(),
             RigidBody::Kinematic,
-            LockedAxes::new().lock_rotation_z().lock_rotation_x(),
+            LockedAxes::new()
+                .lock_rotation_z()
+                .lock_rotation_x()
+                .lock_rotation_y(),
             RotateInDirectionOfMovement::default(),
             TiltInDirectionOfMovement::default(),
             ReplaceMaterialKeepTextureMarker {
@@ -69,7 +77,8 @@ fn spawn_player(
             },
             StepAnimation::default(),
             ApplyGravity,
-            CollideAndSlide::default(),
+
+            //CollideAndSlide::default(),
         ))
         .id();
     let (mut commands, _rig_id, camera_id) =

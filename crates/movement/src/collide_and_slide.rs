@@ -1,6 +1,8 @@
 use avian3d::{position, prelude::*};
 use bevy::{prelude::*, transform};
 
+use crate::kinematic_character_controller::FrameVelocity;
+
 #[derive(Component)]
 pub struct CollideAndSlide {
     pub skin_width: f32,
@@ -20,7 +22,7 @@ impl Default for CollideAndSlide {
 pub fn collide_and_slide(
     mut sliders: Query<(
         Entity,
-        &mut LinearVelocity,
+        &mut FrameVelocity,
         &Collider,
         &Transform,
         &CollideAndSlide,
@@ -31,7 +33,6 @@ pub fn collide_and_slide(
     for (entity, mut velocity, collider, transform, slider) in
         sliders.iter_mut()
     {
-    
         let final_displacement = recursive_slide(
             entity,
             velocity.0,
@@ -85,7 +86,6 @@ fn recursive_slide(
         ) {
             let snap_to_surface: Vec3 = velocity.normalize()
                 * (hit_data.time_of_impact - slider.skin_width);
-
 
             let mut left_over = velocity - snap_to_surface;
             let normal = hit_data.normal1;

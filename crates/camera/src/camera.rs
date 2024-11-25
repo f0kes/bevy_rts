@@ -1,8 +1,11 @@
 use avian3d::prelude::*;
+use bevy::input::mouse::MouseWheel;
 use bevy::math::VectorSpace;
 use bevy::prelude::*;
 use bevy::render::camera::ScalingMode;
 use bevy::window::PrimaryWindow;
+
+use crate::follow::{Follow, TweenMode};
 
 #[derive(Reflect)]
 pub enum CameraMode {
@@ -16,8 +19,11 @@ pub struct MainCamera;
 #[derive(Component, Reflect)]
 pub struct CameraHolder {
     pub mode: CameraMode,
-    pub lerp_speed: f32,
+
     pub offset: Vec3,
+    pub zoom_percentage_speed: f32,
+    pub min_zoom: f32,
+    pub max_zoom: f32,
 }
 
 impl Default for CameraHolder {
@@ -27,8 +33,11 @@ impl Default for CameraHolder {
                 target: None,
                 weight: 0.35,
             },
-            lerp_speed: 5.0,
+
             offset: Vec3::new(0., 10., -10.),
+            zoom_percentage_speed: 6.5,
+            min_zoom: 10.0,
+            max_zoom: 100.0,
         }
     }
 }
@@ -58,30 +67,30 @@ pub struct CameraInput {
 }
 
 pub fn update_follow_camera(
-    mut camera: Query<(&CameraHolder, &CameraInput, &mut Transform)>,
+    mut commands: Commands,
+    mut camera: Query<(Entity, &CameraHolder, &CameraInput, &mut Transform)>,
     entities: Query<&GlobalTransform>,
     time: Res<Time>,
+    mut gizmos: Gizmos,
 ) {
-    for (camera_holder, input, mut holder_transform) in camera.iter_mut() {
+    for (rig_entity, camera_holder, input, mut holder_transform) in
+        camera.iter_mut()
+    {
         match camera_holder.mode {
             CameraMode::FollowEntity { target, weight } => {
                 if let Some(target) = target {
-                    if let Ok(target_global_transform) = entities.get(target) {
-                        let target_global_translation =
-                            target_global_transform.translation();
-                        let camera_translation =
-                            holder_transform.translation.remove_y();
-                        let input_pos = input.pos.remove_y();
-                        let target_pos = target_global_translation.remove_y();
-                        let weighted_mid_point =
-                            target_pos.lerp(input_pos, weight);
-                        let camera_translation = camera_translation.lerp(
-                            weighted_mid_point,
-                            camera_holder.lerp_speed * time.delta_seconds(),
-                        );
-                        holder_transform.translation = camera_translation;
+                    if let Ok(_target_global_transform) = entities.get(target) {
+                        /*  commands.entity(rig_entity).insert(
+                            Follow::default()
+                                .with_target(target)
+                                .with_delta_mode()
+                                .clone(),
+                        ); */
+                        /* gizmos.cuboid(
+                            *holder_transform,
+                            Color::srgb(1.0, 0.0, 0.0),
+                        ); */
                     }
-                    //println!("Camera translation: {:?}", camera_transform.translation);
                 }
             }
             CameraMode::Free => {}
@@ -118,8 +127,6 @@ pub fn get_default_orthographic_projection() -> Projection {
     })
 }
 pub fn get_default_perspective_projection() -> Projection {
-    
-
     Projection::Perspective(PerspectiveProjection {
         fov: std::f32::consts::PI / 6.0,
         near: 0.1,
@@ -149,54 +156,96 @@ pub fn get_default_perspective_projection() -> Projection {
 } */
 
 pub fn update_camera_input(
-    mut camera_query: Query<(&CameraInput, Entity, &mut Transform)>,
-    windows: Query<&Window, With<PrimaryWindow>>,
-    time: Res<Time>,
+    //TODO: this should be a system that updates the camera input component, not a component itself
+    mut camera_query: Query<(&mut CameraInput, Entity, &mut Transform)>,
+
+    mut evr_scroll: EventReader<MouseWheel>,
 ) {
-    let window = windows.single();
-    if let Some(cursor_pos) = window.cursor_position() {
-        // Convert to normalized device coordinates (-1 to 1)
-        let ndc_x = (cursor_pos.x / window.width() * 2.0) - 1.0;
-        let ndc_y = (cursor_pos.y / window.height() * 2.0) - 1.0;
-
-        // Define dead zone in the middle of the screen
-        let dead_zone = 0.0;
-        let move_speed = 100.0;
-
-        for (_input, _entity, mut transform) in camera_query.iter_mut() {
-            // Only move if cursor is outside dead zone
-            if ndc_x.abs() > dead_zone {
-                transform.translation.x += ndc_x ;
-            }
-            if ndc_y.abs() > dead_zone {
-                transform.translation.z += ndc_y ;
-            }
+    for (mut input, _entity, mut _transform) in camera_query.iter_mut() {
+        input.zoom = 0.0;
+        for scroll in evr_scroll.read() {
+            input.zoom = scroll.y;
         }
     }
 }
+
+pub fn zoom(
+    mut rig_query: Query<(&CameraInput, &CameraHolder, Entity, &mut Transform)>,
+    mut camera_query: Query<
+        (&mut GlobalTransform),
+        (With<MainCamera>, Without<CameraHolder>),
+    >,
+    mut target_entity_query: Query<
+        &Transform,
+        (Without<MainCamera>, Without<CameraInput>),
+    >,
+    time: Res<Time>,
+) {
+    for (input, holder, _entity, mut rig_transform) in rig_query.iter_mut() {
+        if let Ok(mut camera_transform) = camera_query.get_single_mut() {
+            let pivot_pos = match holder.mode {
+                CameraMode::FollowEntity { target, .. } => {
+                    if let Some(target_entity) = target {
+                        if let Ok(target_transform) =
+                            target_entity_query.get(target_entity)
+                        {
+                            target_transform.translation
+                        } else {
+                            rig_transform.translation
+                        }
+                    } else {
+                        rig_transform.translation
+                    }
+                }
+                CameraMode::Free => rig_transform.translation,
+            };
+            let target_pos = rig_transform.translation;
+            let zoom_amount = -input.zoom * holder.zoom_percentage_speed;
+            let zoom_direction =
+                (rig_transform.translation - pivot_pos).normalize_or_zero();
+            let mut zoom_desired_position =
+                target_pos + zoom_direction * zoom_amount;
+            //clamp zoom
+            let zoom_distance = (zoom_desired_position - pivot_pos).length();
+            if zoom_distance < holder.min_zoom {
+                zoom_desired_position =
+                    pivot_pos + zoom_direction * holder.min_zoom;
+            } else if zoom_distance > holder.max_zoom {
+                zoom_desired_position =
+                    pivot_pos + zoom_direction * holder.max_zoom;
+            }
+            rig_transform.translation = zoom_desired_position;
+        }
+    }
+}
+
 pub fn spawn_camera_to_follow<'a, 'b>(
     entity_to_follow: Entity,
     mut commands: Commands<'a, 'b>,
 ) -> (Commands<'a, 'b>, Entity, Entity) {
     println!("Spawning camera");
     let camera_rig = commands
-        .spawn(TransformBundle::from_transform(Transform {
-            translation: Vec3::new(0.0, 0.0, 0.0),
-            rotation: Quat::from_euler(EulerRot::XYZ, 0.0, 0.0, 0.0),
-            scale: Vec3::ONE,
-        }))
+        .spawn(TransformBundle::from_transform(
+            Transform::from_translation(Vec3::new(0.0, 15.0, 35.0))
+                .looking_at(Vec3::ZERO, Vec3::Y),
+        ))
         .insert(CameraHolder {
             mode: CameraMode::FollowEntity {
                 target: Some(entity_to_follow),
                 weight: 0.35,
             },
-            lerp_speed: 5.0,
-            offset: Vec3::new(0., 10., -10.),
+            ..default()
         })
         .insert(CameraInput {
             pos: Default::default(),
-            zoom: 0.0,
+            zoom: 10.0,
         })
+        .insert(
+            Follow::default()
+                .with_target(entity_to_follow)
+                .with_delta_mode()
+                .clone(),
+        )
         .id();
 
     let camera = commands
@@ -207,7 +256,12 @@ pub fn spawn_camera_to_follow<'a, 'b>(
             ..default()
         })
         .insert(MainCamera)
-        .set_parent(camera_rig)
+        .insert(
+            Follow::default()
+                .with_target(camera_rig)
+                .lerping(1.0)
+                .clone(),
+        )
         .id();
     return (commands, camera_rig, camera);
 }
