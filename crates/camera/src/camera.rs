@@ -24,6 +24,8 @@ pub struct CameraHolder {
     pub zoom_percentage_speed: f32,
     pub min_zoom: f32,
     pub max_zoom: f32,
+    pub last_zoom_delta: Vec3,
+    pub current_zoom: f32,
 }
 
 impl Default for CameraHolder {
@@ -36,8 +38,10 @@ impl Default for CameraHolder {
 
             offset: Vec3::new(0., 10., -10.),
             zoom_percentage_speed: 6.5,
-            min_zoom: 10.0,
+            min_zoom: 0.0,
             max_zoom: 100.0,
+            last_zoom_delta: Vec3::ZERO,
+            current_zoom: 13.0,
         }
     }
 }
@@ -170,7 +174,12 @@ pub fn update_camera_input(
 }
 
 pub fn zoom(
-    mut rig_query: Query<(&CameraInput, &CameraHolder, Entity, &mut Transform)>,
+    mut rig_query: Query<(
+        &CameraInput,
+        &mut CameraHolder,
+        Entity,
+        &mut Transform,
+    )>,
     mut camera_query: Query<
         (&mut GlobalTransform),
         (With<MainCamera>, Without<CameraHolder>),
@@ -181,7 +190,8 @@ pub fn zoom(
     >,
     time: Res<Time>,
 ) {
-    for (input, holder, _entity, mut rig_transform) in rig_query.iter_mut() {
+    for (input, mut holder, _entity, mut rig_transform) in rig_query.iter_mut()
+    {
         if let Ok(mut camera_transform) = camera_query.get_single_mut() {
             let pivot_pos = match holder.mode {
                 CameraMode::FollowEntity { target, .. } => {
@@ -200,21 +210,21 @@ pub fn zoom(
                 CameraMode::Free => rig_transform.translation,
             };
             let target_pos = rig_transform.translation;
-            let zoom_amount = -input.zoom * holder.zoom_percentage_speed;
+            let new_zoom =
+                holder.current_zoom - input.zoom * holder.zoom_percentage_speed;
+            holder.current_zoom =
+                new_zoom.clamp(holder.min_zoom, holder.max_zoom);
+
             let zoom_direction =
                 (rig_transform.translation - pivot_pos).normalize_or_zero();
-            let mut zoom_desired_position =
-                target_pos + zoom_direction * zoom_amount;
-            //clamp zoom
-            let zoom_distance = (zoom_desired_position - pivot_pos).length();
-            if zoom_distance < holder.min_zoom {
-                zoom_desired_position =
-                    pivot_pos + zoom_direction * holder.min_zoom;
-            } else if zoom_distance > holder.max_zoom {
-                zoom_desired_position =
-                    pivot_pos + zoom_direction * holder.max_zoom;
-            }
-            rig_transform.translation = zoom_desired_position;
+            let zoom_delta =
+                 zoom_direction * holder.current_zoom;
+
+            rig_transform.translation +=
+                zoom_delta - holder.last_zoom_delta;
+            holder.last_zoom_delta = zoom_delta;
+
+            println!("Zooming to {:?}", zoom_delta - pivot_pos);
         }
     }
 }
@@ -226,7 +236,7 @@ pub fn spawn_camera_to_follow<'a, 'b>(
     println!("Spawning camera");
     let camera_rig = commands
         .spawn(TransformBundle::from_transform(
-            Transform::from_translation(Vec3::new(0.0, 15.0, 35.0))
+            Transform::from_translation(Vec3::new(0.0, 5.0, 12.0))
                 .looking_at(Vec3::ZERO, Vec3::Y),
         ))
         .insert(CameraHolder {

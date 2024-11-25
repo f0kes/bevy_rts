@@ -41,7 +41,7 @@ pub fn move_unit<T: MoveInput>(
             velocity.0 = clamped_velocity * time.delta_seconds();
             commands.entity(entity).insert(Acceleration(accel));
         } else {
-            let horizontal_velocity =
+           /*  let horizontal_velocity =
                 Vec3::new(velocity.0.x, 0.0, velocity.0.z)
                     / time.delta_seconds();
             let decel = horizontal_velocity.normalize_or_zero()
@@ -52,13 +52,11 @@ pub fn move_unit<T: MoveInput>(
 
             // Only modify X and Z components if they need to be zeroed
             if new_velocity.length() < 1.0 {
-                velocity.0.x = 0.0;
-                velocity.0.z = 0.0;
+                velocity.0 =  Vec3::ZERO;
             } else {
-                velocity.0.x = new_velocity.x;
-                velocity.0.z = new_velocity.z;
+                velocity.0 = new_velocity;
             }
-            commands.entity(entity).insert(Acceleration(decel));
+            commands.entity(entity).insert(Acceleration(decel)); */
         }
     }
 }
