@@ -81,8 +81,8 @@ fn spawn_player(
             //CollideAndSlide::default(),
         ))
         .id();
-    let (mut commands, _rig_id, camera_id) =
-        spawn_camera_to_follow(p_id, commands);
+     let (mut commands, _rig_id, camera_id) =
+        spawn_camera_to_follow(p_id, commands); 
     commands.entity(camera_id).insert(ToonShaderMainCamera);
 }
 #[derive(Component)]

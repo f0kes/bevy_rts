@@ -69,7 +69,7 @@ fn main() {
     };
 
     app.add_plugins(DefaultPlugins.set(window_plugin).set(asset_plugin));
-    app.add_plugins(EditorPlugin::default());
+   app.add_plugins(EditorPlugin::default());
     //app.add_plugins(BlenvyPlugin::default());
     app.register_type::<Dude>();
 
@@ -81,7 +81,7 @@ fn main() {
     app.add_plugins(TexturableMaterialPlugin::<OutlineMaterial>::default());
     app.add_plugins(ToonShaderPlugin);
     app.add_plugins(PhysicsPlugins::default());
-    app.add_plugins(PhysicsDebugPlugin::default());
+     app.add_plugins(PhysicsDebugPlugin::default());
     app.add_plugins(FrameTimeDiagnosticsPlugin::default());
     app.add_plugins(LogDiagnosticsPlugin::default());
 
@@ -91,7 +91,7 @@ fn main() {
             ..default()
         },
         gismo_config,
-    );
+    ); 
     app.add_plugins(SmoothCameraPlugin);
     app.run();
 }
