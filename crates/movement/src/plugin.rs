@@ -15,6 +15,7 @@ use crate::rotate::tilt_in_direction_of_acceleration;
 use crate::rotate::RotateInDirectionOfMovement;
 use crate::rotate::TiltInDirectionOfMovement;
 use crate::step_animation::animate_steps;
+use crate::vidar_cas;
 const ACCELERATION: f32 = 15.0;
 const MAX_SPEED: f32 = 10.0;
 const DECELERATION: f32 = 15.0;
@@ -50,7 +51,12 @@ impl<T: MoveInput> Plugin for MovementPlugin<T> {
             Update,
             collide_and_slide.after(move_unit::<T>).after(apply_gravity),
         );
-        app.add_systems(PostUpdate, apply_frame_velocity);
+
+        //app.add_systems(PostUpdate, vidar_cas::collide_and_slide_system);
+        app.add_systems(
+            PostUpdate,
+            apply_frame_velocity.after(vidar_cas::collide_and_slide_system),
+        );
     }
 }
 impl<T: MoveInput> MovementPlugin<T> {

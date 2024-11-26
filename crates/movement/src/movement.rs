@@ -1,5 +1,5 @@
 use crate::{
-    kinematic_character_controller::FrameVelocity, plugin::MovementPluginConfig,
+    kinematic_character_controller::MoveVelocity, plugin::MovementPluginConfig,
 };
 use avian3d::prelude::*;
 use bevy::prelude::*;
@@ -16,7 +16,7 @@ pub fn move_unit<T: MoveInput>(
     mut commands: Commands,
     time: Res<Time>,
     movement_config: Res<MovementPluginConfig>,
-    mut query: Query<(Entity, &mut FrameVelocity, &T)>,
+    mut query: Query<(Entity, &mut MoveVelocity, &T)>,
 ) {
     if time.delta_seconds() <= 0.0 {
         return;
@@ -29,7 +29,7 @@ pub fn move_unit<T: MoveInput>(
                 direction = direction.normalize();
             }
             let accel = direction * movement_config.default_acceleration;
-            let mut velocity_vec = velocity.0 / time.delta_seconds();
+            let mut velocity_vec = velocity.0;
 
             let new_velocity = velocity_vec + accel * time.delta_seconds();
             let clamped_velocity =
@@ -38,25 +38,25 @@ pub fn move_unit<T: MoveInput>(
                 } else {
                     new_velocity.normalize() * velocity_vec.length()
                 };
-            velocity.0 = clamped_velocity * time.delta_seconds();
+            velocity.0 = clamped_velocity;
             commands.entity(entity).insert(Acceleration(accel));
         } else {
-           /*  let horizontal_velocity =
-                Vec3::new(velocity.0.x, 0.0, velocity.0.z)
-                    / time.delta_seconds();
+            let horizontal_velocity =
+                Vec3::new(velocity.0.x, 0.0, velocity.0.z);
             let decel = horizontal_velocity.normalize_or_zero()
                 * movement_config.default_deceleration;
-            let new_velocity = (horizontal_velocity
-                - decel * time.delta_seconds())
-                * time.delta_seconds();
+            let new_velocity =
+                (horizontal_velocity - decel * time.delta_seconds());
 
             // Only modify X and Z components if they need to be zeroed
             if new_velocity.length() < 1.0 {
-                velocity.0 =  Vec3::ZERO;
+                velocity.0.x = 0.0;
+                velocity.0.z = 0.0;
             } else {
-                velocity.0 = new_velocity;
+                velocity.0.x = new_velocity.x;
+                velocity.0.z = new_velocity.z;
             }
-            commands.entity(entity).insert(Acceleration(decel)); */
+            commands.entity(entity).insert(Acceleration(decel));
         }
     }
 }
@@ -64,11 +64,11 @@ pub fn move_unit<T: MoveInput>(
 pub fn apply_gravity(
     time: Res<Time>,
     gravity: Res<Gravity>,
-    mut query: Query<(Entity, &mut FrameVelocity), With<ApplyGravity>>,
+    mut query: Query<(Entity, &mut MoveVelocity), With<ApplyGravity>>,
 ) {
     let dt = time.delta_seconds();
 
     for (entity, mut velocity) in query.iter_mut() {
-        velocity.0 += gravity.0 * dt * dt;
+        velocity.0 += gravity.0 * dt;
     }
 }
