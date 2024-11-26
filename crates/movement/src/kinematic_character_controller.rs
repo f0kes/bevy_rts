@@ -1,3 +1,4 @@
+use avian3d::prelude::Collider;
 use bevy::prelude::*;
 
 use crate::collide_and_slide::CollideAndSlide;
@@ -25,16 +26,17 @@ impl Default for KinematicCharacterController {
 #[derive(Bundle, Default)]
 pub struct KinematicCharacterControllerBundle {
     pub controller: KinematicCharacterController,
-    pub velocity: FrameVelocity,
+    pub velocity: MoveVelocity,
 }
 #[derive(Component, Default)]
-pub struct FrameVelocity(pub Vec3);
+pub struct MoveVelocity(pub Vec3);
 
 pub fn apply_frame_velocity(
-    mut query: Query<(&mut Transform, &FrameVelocity)>,
+    time: Res<Time>,
+    mut query: Query<(&mut Transform, &MoveVelocity)>,
 ) {
     for (mut transform, velocity) in query.iter_mut() {
-        transform.translation += velocity.0;
+        transform.translation += velocity.0 * time.delta_seconds();
     }
 }
 

@@ -224,7 +224,7 @@ pub fn zoom(
                 zoom_delta - holder.last_zoom_delta;
             holder.last_zoom_delta = zoom_delta;
 
-            println!("Zooming to {:?}", zoom_delta - pivot_pos);
+          
         }
     }
 }

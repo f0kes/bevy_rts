@@ -1,7 +1,7 @@
 use avian3d::{position, prelude::*};
 use bevy::{prelude::*, transform};
 
-use crate::kinematic_character_controller::FrameVelocity;
+use crate::kinematic_character_controller::MoveVelocity;
 
 #[derive(Component)]
 pub struct CollideAndSlide {
@@ -22,7 +22,7 @@ impl Default for CollideAndSlide {
 pub fn collide_and_slide(
     mut sliders: Query<(
         Entity,
-        &mut FrameVelocity,
+        &mut MoveVelocity,
         &Collider,
         &Transform,
         &CollideAndSlide,

@@ -3,7 +3,9 @@ use std::f32::consts;
 use avian3d::prelude::*;
 use bevy::prelude::*;
 
-use crate::{kinematic_character_controller::FrameVelocity, movement::Acceleration};
+use crate::{
+    kinematic_character_controller::MoveVelocity, movement::Acceleration,
+};
 
 #[derive(Component, Reflect)]
 pub struct RotateInDirectionOfMovement {
@@ -43,7 +45,7 @@ pub fn rotate_in_direction_of_movement(
     mut query: Query<(
         &mut RotateInDirectionOfMovement,
         &mut Transform,
-        &FrameVelocity,
+        &MoveVelocity,
     )>,
     time: Res<Time>,
 ) {
@@ -58,7 +60,8 @@ pub fn rotate_in_direction_of_movement(
 
         let current_angle = f32::atan2(vel_per_sec.x, vel_per_sec.z)
             - std::f32::consts::FRAC_PI_2;
-        let velocity_xz = Vec3::new(vel_per_sec.x, vel_per_sec.y, vel_per_sec.z);
+        let velocity_xz =
+            Vec3::new(vel_per_sec.x, vel_per_sec.y, vel_per_sec.z);
         let local_forward_to_velocity =
             Quat::from_rotation_arc(transform.forward().into(), velocity_xz);
         let rotation_delta = Quat::from_rotation_y(current_angle);
@@ -76,7 +79,6 @@ pub fn tilt_in_direction_of_acceleration(
         &Acceleration,
     )>,
 ) {
-    
     for (mut tilt, mut transform, accel) in query.iter_mut() {
         let dt = time.delta_seconds();
         transform.rotation = transform.rotation * tilt.current_tilt.inverse();
@@ -103,7 +105,9 @@ pub fn tilt_in_direction_of_acceleration(
         };
 
         // Calculate and store new tilt
-        let new_tilt = tilt.current_tilt.slerp(target_rotation, tilt.tilt_smoothing);
+        let new_tilt = tilt
+            .current_tilt
+            .slerp(target_rotation, tilt.tilt_smoothing);
         tilt.current_tilt = new_tilt;
 
         // Apply the new tilt

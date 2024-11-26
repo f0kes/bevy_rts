@@ -9,10 +9,11 @@ use avian3d::PhysicsPlugins;
 use bevy::asset::AssetMetaCheck;
 use bevy::color::palettes::css::{RED, WHITE};
 use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
+use bevy::input::mouse::MouseButtonInput;
 use bevy::pbr::CascadeShadowConfigBuilder;
 use bevy::prelude::*;
 use bevy::render::texture::ImageSamplerDescriptor;
-use bevy::window::PrimaryWindow;
+use bevy::window::{PresentMode, PrimaryWindow, WindowFocused};
 use bevy::winit::WinitWindows;
 use bevy::DefaultPlugins;
 use bevy_editor_pls::prelude::*;
@@ -33,7 +34,7 @@ use world_gen::mesh::{create_subdivided_plane, TerrainPlaneOptions};
 
 use std::f32::consts::PI;
 use std::io::Cursor;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 use winit::window::Icon;
 
 #[derive(Component, Reflect)]
@@ -58,6 +59,7 @@ fn main() {
             fit_canvas_to_parent: true,
             // Tells wasm not to override default event handling, like F5 and Ctrl+R
             prevent_default_event_handling: false,
+            present_mode: PresentMode::AutoNoVsync, // TODO: Investigate left click render extraction spike when optimizing performance with VSync enabled
             ..default()
         }),
         ..default()
@@ -67,13 +69,13 @@ fn main() {
         meta_check: AssetMetaCheck::Never,
         ..default()
     };
-
+    
+        
     app.add_plugins(DefaultPlugins.set(window_plugin).set(asset_plugin));
-    app.add_plugins(EditorPlugin::default());
-    //app.add_plugins(BlenvyPlugin::default());
+    //app.add_plugins(EditorPlugin::default());
+
     app.register_type::<Dude>();
 
-    //app.add_plugins(GamePlugin);
     app.add_systems(Startup, set_window_icon);
     app.add_systems(Startup, setup);
     //app.add_systems(Update, animation_control);
@@ -82,8 +84,8 @@ fn main() {
     app.add_plugins(ToonShaderPlugin);
     app.add_plugins(PhysicsPlugins::default());
     app.add_plugins(PhysicsDebugPlugin::default());
-    app.add_plugins(FrameTimeDiagnosticsPlugin::default());
-    app.add_plugins(LogDiagnosticsPlugin::default());
+    //app.add_plugins(FrameTimeDiagnosticsPlugin::default());
+    //app.add_plugins(LogDiagnosticsPlugin::default());
 
     app.insert_gizmo_config(
         PhysicsGizmos {
