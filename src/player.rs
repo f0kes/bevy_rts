@@ -35,12 +35,12 @@ impl Plugin for PlayerPlugin {
         app.register_type::<Player>();
         app.insert_resource(InputMap::wasd());
         app.add_plugins(InputActionsPlugin);
-        app.add_plugins(MovementPlugin::<Move>::new(MovementPluginConfig {
+         app.add_plugins(MovementPlugin::<Move>::new(MovementPluginConfig {
             default_acceleration: 35.0,
             default_max_speed: 5.0,
             default_deceleration: 200.0,
         }));
-        app.add_systems(Update, move_player);
+        app.add_systems(Update, move_player); 
     }
 }
 
@@ -64,7 +64,6 @@ fn spawn_player(
             Player,
             KinematicCharacterControllerBundle::default(),
             Collider::sphere(0.47),
-            SweptCcd::default(),
             RigidBody::Kinematic,
             LockedAxes::new()
                 .lock_rotation_z()
