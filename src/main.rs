@@ -2,39 +2,33 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use avian3d::prelude::{
-    ColliderConstructor, CollisionMargin, DebugRender, PhysicsDebugPlugin,
-    PhysicsGizmos, RigidBody,
+    ColliderConstructor, CollisionMargin, PhysicsDebugPlugin, PhysicsGizmos,
+    RigidBody,
 };
 use avian3d::PhysicsPlugins;
 use bevy::asset::AssetMetaCheck;
-use bevy::color::palettes::css::{RED, WHITE};
-use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
-use bevy::input::mouse::MouseButtonInput;
+
 use bevy::pbr::CascadeShadowConfigBuilder;
 use bevy::prelude::*;
-use bevy::render::texture::ImageSamplerDescriptor;
-use bevy::window::{PresentMode, PrimaryWindow, WindowFocused};
+
+use bevy::window::{PresentMode, PrimaryWindow};
 use bevy::winit::WinitWindows;
 use bevy::DefaultPlugins;
-use bevy_editor_pls::prelude::*;
 
+use bevy_editor_pls::EditorPlugin;
 use bevy_game::player::PlayerPlugin;
 
-use blenvy::{
-    BlenvyPlugin, BlueprintAnimationPlayerLink, BlueprintAnimations,
-    BlueprintInfo, GameWorldTag, HideUntilReady, SpawnBlueprint,
-};
 use camera::plugin::SmoothCameraPlugin;
-use outline::plugin::{
-    CustomMaterialPlugin, TexturableMaterialPlugin, ToonShaderPlugin,
-};
+use outline::plugin::{TexturableMaterialPlugin, ToonShaderPlugin};
 use outline::shader_material::OutlineMaterial;
 use outline::toon_shader::{ToonShaderMaterial, ToonShaderSun};
-use world_gen::mesh::{create_subdivided_plane, TerrainPlaneOptions};
+
+use world_gen::perlin_terrain::PerlinTerrain;
+use world_gen::terrain::{Terrain, TerrainLike, TerrainPlaneOptions};
 
 use std::f32::consts::PI;
 use std::io::Cursor;
-use std::time::{Duration, Instant};
+
 use winit::window::Icon;
 
 #[derive(Component, Reflect)]
@@ -69,10 +63,9 @@ fn main() {
         meta_check: AssetMetaCheck::Never,
         ..default()
     };
-    
-        
+
     app.add_plugins(DefaultPlugins.set(window_plugin).set(asset_plugin));
-    //app.add_plugins(EditorPlugin::default());
+    app.add_plugins(EditorPlugin::default());
 
     app.register_type::<Dude>();
 
@@ -134,8 +127,10 @@ fn setup(
         // HideUntilReady,
         // GameWorldTag,
     ));
-    let mesh =
-        meshes.add(create_subdivided_plane(TerrainPlaneOptions::default()));
+
+    let terrain = Terrain::new_perlin(TerrainPlaneOptions::default(), 32);
+    let mesh = meshes.add(terrain.get_mesh().clone());
+    commands.insert_resource(terrain);
     commands.spawn((
         ColliderConstructor::TrimeshFromMesh,
         CollisionMargin(1.),

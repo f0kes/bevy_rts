@@ -3,11 +3,23 @@ use crate::{
 };
 use avian3d::prelude::*;
 use bevy::prelude::*;
+use world_gen::terrain::Terrain;
+use world_gen::terrain::TerrainLike;
 
 #[derive(Component, Debug, Reflect)]
 pub struct Acceleration(pub Vec3);
 #[derive(Component, Debug, Reflect)]
 pub struct ApplyGravity;
+#[derive(Component, Debug, Reflect)]
+pub struct GlueToGround {
+    last_height: f32,
+}
+impl Default for GlueToGround {
+    fn default() -> Self {
+        Self { last_height: 0.0 }
+    }
+}
+
 pub trait MoveInput: Component {
     fn direction(&self) -> Vec3;
 }
@@ -71,5 +83,17 @@ pub fn apply_gravity(
 
     for (entity, mut velocity) in query.iter_mut() {
         velocity.0 += gravity.0 * dt;
+    }
+}
+pub fn glue_to_ground(
+    terrain: Res<Terrain>,
+    mut query: Query<(&mut Transform, &mut GlueToGround)>,
+) {
+    for (mut transform, mut gtg) in query.iter_mut() {
+        let height = terrain
+            .get_height(transform.translation.x, transform.translation.z);
+        
+        transform.translation.y += height - gtg.last_height;
+        gtg.last_height = height;
     }
 }

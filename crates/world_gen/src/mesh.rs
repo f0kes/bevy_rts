@@ -1,33 +1,14 @@
 use bevy::{prelude::*, render::render_asset::RenderAssetUsages};
 use noise::{NoiseFn, Perlin};
 
-pub struct TerrainPlaneOptions {
-    pub width: f32,
-    pub height: f32,
-    pub width_segments: u32,
-    pub height_segments: u32,
-    pub noise_scale: f32, // Controls the frequency of the noise
-    pub height_scale: f32, // Controls the amplitude of the displacement
-}
 
-impl Default for TerrainPlaneOptions {
-    fn default() -> Self {
-        TerrainPlaneOptions {
-            width: 200.0,
-            height: 200.0,
-            width_segments: 50,
-            height_segments: 50,
-            noise_scale: 0.1,
-            height_scale: 2.0,
-        }
-    }
-}
 
-pub fn create_subdivided_plane(
+/* pub fn create_mesh_from_noise(
     terrain_plane_options: TerrainPlaneOptions,
+    noise: impl NoiseFn<f64, 2>,
 ) -> Mesh {
     let mut positions = Vec::new();
-    
+
     let mut uvs = Vec::new();
     let mut indices = Vec::new();
 
@@ -47,7 +28,7 @@ pub fn create_subdivided_plane(
     let segment_width = width / grid_x as f32;
     let segment_height = height / grid_y as f32;
 
-    let noise = Perlin::new(16);
+    
 
     // Generate vertices with noise-based displacement
     let mut vertex_grid =
@@ -102,3 +83,4 @@ pub fn create_subdivided_plane(
     mesh.compute_smooth_normals();
     mesh
 }
+ */

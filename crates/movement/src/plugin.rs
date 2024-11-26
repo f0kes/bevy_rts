@@ -6,6 +6,7 @@ use crate::collide_and_slide;
 use crate::kinematic_character_controller::add_collide_and_slide_to_characters;
 use crate::kinematic_character_controller::apply_frame_velocity;
 use crate::movement::apply_gravity;
+use crate::movement::glue_to_ground;
 use crate::movement::move_unit;
 
 use crate::collide_and_slide::collide_and_slide;
@@ -37,6 +38,7 @@ impl<T: MoveInput> Plugin for MovementPlugin<T> {
             (
                 move_unit::<T>,
                 apply_gravity,
+                glue_to_ground,
                 rotate_in_direction_of_movement,
                 tilt_in_direction_of_acceleration
                     .after(rotate_in_direction_of_movement),

@@ -3095,6 +3095,7 @@ dependencies = [
  "avian3d",
  "bevy",
  "serde",
+ "world_gen",
 ]
 
 [[package]]
