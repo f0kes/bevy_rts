@@ -27,7 +27,7 @@ pub struct TiltInDirectionOfMovement {
     max_tilt_radians: f32,
     min_speed: f32,
     max_speed: f32,
-    tilt_smoothing: f32,
+    tilt_smoothing_speed: f32,
 }
 impl Default for TiltInDirectionOfMovement {
     fn default() -> Self {
@@ -36,7 +36,7 @@ impl Default for TiltInDirectionOfMovement {
             max_tilt_radians: std::f32::consts::FRAC_PI_8,
             min_speed: 10.,
             max_speed: 20.,
-            tilt_smoothing: 0.1,
+            tilt_smoothing_speed: 10.,
         }
     }
 }
@@ -80,7 +80,6 @@ pub fn tilt_in_direction_of_acceleration(
     )>,
 ) {
     for (mut tilt, mut transform, accel) in query.iter_mut() {
-        let dt = time.delta_seconds();
         transform.rotation = transform.rotation * tilt.current_tilt.inverse();
 
         let accel_len = accel.0.length();
@@ -107,7 +106,7 @@ pub fn tilt_in_direction_of_acceleration(
         // Calculate and store new tilt
         let new_tilt = tilt
             .current_tilt
-            .slerp(target_rotation, tilt.tilt_smoothing);
+            .slerp(target_rotation, tilt.tilt_smoothing_speed * time.delta_seconds());
         tilt.current_tilt = new_tilt;
 
         // Apply the new tilt

@@ -1,6 +1,8 @@
 use avian3d::prelude::*;
 use bevy::prelude::*;
 
+use crate::kinematic_character_controller::MoveVelocity;
+
 #[derive(Component)]
 pub struct StepAnimation {
     pub step_frequency: f32, // How many steps per second
@@ -22,7 +24,7 @@ impl Default for StepAnimation {
 
 pub fn animate_steps(
     time: Res<Time>,
-    mut query: Query<(&mut Transform, &mut StepAnimation, &LinearVelocity)>,
+    mut query: Query<(&mut Transform, &mut StepAnimation, &MoveVelocity)>,
 ) {
     for (mut transform, mut step_animation, velocity) in query.iter_mut() {
         let speed = velocity.0.length();

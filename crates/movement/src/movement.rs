@@ -57,6 +57,7 @@ pub fn move_unit<T: MoveInput>(
                 velocity.0.z = new_velocity.z;
             }
             commands.entity(entity).insert(Acceleration(decel));
+            //commands.entity(entity).remove::<Acceleration>();
         }
     }
 }

@@ -65,17 +65,17 @@ fn spawn_player(
             KinematicCharacterControllerBundle::default(),
             Collider::sphere(0.47),
             RigidBody::Kinematic,
-            LockedAxes::new()
+            /* LockedAxes::new()
                 .lock_rotation_z()
                 .lock_rotation_x()
-                .lock_rotation_y(),
+                .lock_rotation_y(), */
             RotateInDirectionOfMovement::default(),
             TiltInDirectionOfMovement::default(),
             ReplaceMaterialKeepTextureMarker {
                 material: default_toon_shader_material(),
             },
             StepAnimation::default(),
-            ApplyGravity,
+            //ApplyGravity,
 
             //CollideAndSlide::default(),
         ))

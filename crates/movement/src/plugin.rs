@@ -45,7 +45,7 @@ impl<T: MoveInput> Plugin for MovementPlugin<T> {
         );
 
         app.insert_resource(self.config.clone());
-        app.add_systems(Update, add_collide_and_slide_to_characters);
+        //app.add_systems(Update, add_collide_and_slide_to_characters);
         // Add collide_and_slide after all other systems that modify LinearVelocity
         app.add_systems(
             Update,
