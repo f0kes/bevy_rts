@@ -17,6 +17,46 @@ var base_color_sampler: sampler;
 
 #import bevy_pbr::forward_io::VertexOutput
 
+fn grad(p: vec2<i32>, d: vec2<f32>) -> f32 {
+    let hash = (p.x * 383) ^ (p.y * 1493);
+    let h = hash & 7;
+    
+    var gradient = vec2<f32>(0.0);
+    
+    switch h {
+        case 0: { gradient = vec2<f32>(-1.0, -1.0); }
+        case 1: { gradient = vec2<f32>(1.0, -1.0); }
+        case 2: { gradient = vec2<f32>(-1.0, 1.0); }
+        case 3: { gradient = vec2<f32>(1.0, 1.0); }
+        case 4: { gradient = vec2<f32>(-1.0, 0.0); }
+        case 5: { gradient = vec2<f32>(1.0, 0.0); }
+        case 6: { gradient = vec2<f32>(0.0, -1.0); }
+        default: { gradient = vec2<f32>(0.0, 1.0); }
+    }
+    
+    return dot(gradient, d);
+}
+
+fn noise2d(pos: vec2<f32>) -> f32 {
+    let i = vec2<i32>(floor(pos));
+    let f = fract(pos);
+    
+    // Cubic Hermine Curve
+    let u = f * f * (3.0 - 2.0 * f);
+    
+    let n00 = grad(i + vec2<i32>(0, 0), f - vec2<f32>(0.0, 0.0));
+    let n10 = grad(i + vec2<i32>(1, 0), f - vec2<f32>(1.0, 0.0));
+    let n01 = grad(i + vec2<i32>(0, 1), f - vec2<f32>(0.0, 1.0));
+    let n11 = grad(i + vec2<i32>(1, 1), f - vec2<f32>(1.0, 1.0));
+    
+    let nx0 = mix(n00, n10, u.x);
+    let nx1 = mix(n01, n11, u.x);
+    let nxy = mix(nx0, nx1, u.y);
+    
+    return nxy * 0.5 + 0.5;
+}
+
+
 @fragment
 fn fragment(in: VertexOutput) -> @location(0) vec4<f32> {
     // if model doesn't have uvs, this lets it still render.
@@ -55,11 +95,12 @@ fn fragment(in: VertexOutput) -> @location(0) vec4<f32> {
     let specular_intensity_smooth = smoothstep(0.005, 0.01, specular_intensity); //0.005, 0.01, specular_intensity);
     let specular = specular_intensity_smooth * vec4<f32>(0.9, 0.9, 0.9, 1.0); //0.9, 0.9, 0.9, 1.0);
 
-    let slope = dot(normal, vec3<f32>(0.0, 1.0, 0.0));
+    //let slope = dot(normal, vec3<f32>(0.0, 1.0, 0.0));
     let bands = 4.0; // Adjust number of bands as needed
 
-    let cliff_angle = smoothstep(cos(radians(18.0)), cos(radians(0.0)), slope);
-    let cliff_blend = round(cliff_angle * bands) / bands;
-    let end_color = mix(cliff_color, base_color, cliff_blend);
+    //let cliff_angle = smoothstep(cos(radians(18.0)), cos(radians(0.0)), slope);
+   // let cliff_blend = round(cliff_angle * bands) / bands;
+    let perlin_blend = noise2d(in.world_position.xz * 0.04) ;
+    let end_color = mix(cliff_color, base_color, perlin_blend);
     return end_color * (light + material.ambient_color + specular);
 }

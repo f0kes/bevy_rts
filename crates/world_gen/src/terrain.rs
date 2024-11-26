@@ -2,6 +2,7 @@ use bevy::prelude::*;
 
 use bevy::render::render_asset::RenderAssetUsages;
 use noise::NoiseFn;
+use outline::grass::{Heightmap, WithBounds};
 
 pub struct TerrainPlaneOptions {
     pub width: f32,
@@ -24,7 +25,7 @@ impl Default for TerrainPlaneOptions {
         }
     }
 }
-#[derive(Resource, Component)]
+#[derive(Resource, Component, Clone)]
 pub struct Terrain {
     mesh: Mesh,
     vertex_grid: Vec<Vec<Vec3>>,
@@ -36,8 +37,23 @@ pub struct Terrain {
 
 pub trait TerrainLike {
     fn get_height(&self, x: f32, z: f32) -> f32;
-     fn get_normal(&self, x: f32, z: f32) -> Vec3;
+    fn get_normal(&self, x: f32, z: f32) -> Vec3;
     fn get_mesh(&self) -> &Mesh;
+}
+impl Heightmap for Terrain {
+    fn height(&self, x: f32, z: f32) -> f32 {
+        self.get_height(x, z)
+    }
+}
+impl WithBounds for Terrain {
+    fn bounds(&self) -> (f32, f32, f32, f32) {
+        (
+            -self.width / 2.0,
+            self.width / 2.0,
+            -self.height / 2.0,
+            self.height / 2.0,
+        )
+    }
 }
 
 impl Terrain {

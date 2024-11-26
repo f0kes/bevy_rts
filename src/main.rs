@@ -8,6 +8,7 @@ use avian3d::prelude::{
 use avian3d::PhysicsPlugins;
 use bevy::asset::AssetMetaCheck;
 
+use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 use bevy::pbr::CascadeShadowConfigBuilder;
 use bevy::prelude::*;
 
@@ -19,6 +20,7 @@ use bevy_editor_pls::EditorPlugin;
 use bevy_game::player::PlayerPlugin;
 
 use camera::plugin::SmoothCameraPlugin;
+use outline::grass::{GrassPlugin, SpawnGrass};
 use outline::plugin::{TexturableMaterialPlugin, ToonShaderPlugin};
 use outline::shader_material::OutlineMaterial;
 use outline::toon_shader::{ToonShaderMaterial, ToonShaderSun};
@@ -77,8 +79,9 @@ fn main() {
     app.add_plugins(ToonShaderPlugin);
     app.add_plugins(PhysicsPlugins::default());
     app.add_plugins(PhysicsDebugPlugin::default());
-    //app.add_plugins(FrameTimeDiagnosticsPlugin::default());
-    //app.add_plugins(LogDiagnosticsPlugin::default());
+    //app.add_plugins(GrassPlugin::<Terrain>::default());
+    app.add_plugins(FrameTimeDiagnosticsPlugin::default());
+    app.add_plugins(LogDiagnosticsPlugin::default());
 
     app.insert_gizmo_config(
         PhysicsGizmos {
@@ -128,18 +131,20 @@ fn setup(
         // GameWorldTag,
     ));
 
-    let terrain = Terrain::new_perlin(TerrainPlaneOptions::default(), 32);
+    let terrain = Terrain::new_perlin(TerrainPlaneOptions::default(), 64);
     let mesh = meshes.add(terrain.get_mesh().clone());
-    commands.insert_resource(terrain);
+    commands.insert_resource(terrain.clone());
     commands.spawn((
+        terrain,
         ColliderConstructor::TrimeshFromMesh,
         CollisionMargin(1.),
         RigidBody::Static,
         MaterialMeshBundle {
             mesh: mesh,
             material: materials.add(ToonShaderMaterial {
-                color: Color::srgb(0.7, 1.0, 0.7),
-                cliff_color: Color::srgb(0.7, 1.0, 0.7), //cliff_color: Color::srgb(0.5, 0.5, 0.3),
+                color: Color::srgb(0.4, 0.8, 0.4),
+                cliff_color: Color::srgb(0.6, 0.8, 0.6), //cliff_color: Color::srgb(0.5, 0.5, 0.3),
+
                 sun_dir: Vec3::new(0.0, 1.0, 1.0),
                 sun_color: Color::srgb(1.0, 1.0, 0.0),
                 camera_pos: Vec3::new(0.0, 0.0, 1.0),
@@ -150,6 +155,7 @@ fn setup(
             transform: Transform::from_xyz(0.0, 0.0, 0.0),
             ..default()
         },
+        //SpawnGrass,
     ));
     commands.spawn((
         DirectionalLightBundle {
