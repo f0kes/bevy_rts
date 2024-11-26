@@ -43,7 +43,7 @@ pub struct Dude;
 fn main() {
     let mut app = App::new();
     let gismo_config = GizmoConfig {
-        enabled: true,
+        enabled: false,
         ..default()
     };
     app.insert_resource(Msaa::Off);
