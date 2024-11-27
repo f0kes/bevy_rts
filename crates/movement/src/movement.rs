@@ -95,5 +95,6 @@ pub fn glue_to_ground(
         
         transform.translation.y += height - gtg.last_height;
         gtg.last_height = height;
+        //transform.translation.y = height;
     }
 }

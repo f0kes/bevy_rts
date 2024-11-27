@@ -75,7 +75,7 @@ fn spawn_player(
                 material: default_toon_shader_material(),
             },
             StepAnimation::default(),
-            //ApplyGravity,
+           // ApplyGravity,
             GlueToGround::default(),
             //CollideAndSlide::default(),
         ))
