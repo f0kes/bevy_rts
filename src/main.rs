@@ -17,6 +17,7 @@ use bevy::winit::WinitWindows;
 use bevy::DefaultPlugins;
 
 use bevy_editor_pls::EditorPlugin;
+use bevy_game::dudliq::spawn_dudliq;
 use bevy_game::player::PlayerPlugin;
 
 use camera::plugin::SmoothCameraPlugin;
@@ -94,6 +95,7 @@ fn main() {
         gismo_config,
     );
     app.add_plugins(SmoothCameraPlugin);
+    app.add_systems(Startup, spawn_dudliq);
     app.run();
 }
 
@@ -206,6 +208,7 @@ fn setup(
         color: Color::WHITE,
         brightness: 100.,
     });
+    
 
     //commands.spawn(DebugRender::default());
 }

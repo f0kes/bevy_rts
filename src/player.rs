@@ -58,7 +58,7 @@ fn spawn_player(
         .spawn((
             SceneBundle {
                 scene: player_handle,
-                transform: Transform::from_xyz(0., 0.7, 1.),
+                transform: Transform::from_xyz(0., 0.6, 0.),
                 ..Default::default()
             },
             Player,

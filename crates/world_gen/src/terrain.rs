@@ -153,39 +153,23 @@ impl Terrain {
 impl TerrainLike for Terrain {
     fn get_height(&self, x: f32, z: f32) -> f32 {
         // Convert world coordinates to grid coordinates
-        let width_half = self.width / 2.0;
-        let height_half = self.height / 2.0;
+        // Calculate grid space coordinates
+        let grid_x =
+            (x + self.width / 2.0) / (self.width / self.width_segments as f32);
+        let grid_z = (z + self.height / 2.0)
+            / (self.height / self.height_segments as f32);
 
-        let grid_x = ((x + width_half) / self.width
-            * self.width_segments as f32)
-            .floor();
-        let grid_z = ((z + height_half) / self.height
-            * self.height_segments as f32)
-            .floor();
-
-        // Ensure we're within bounds
-        if grid_x < 0.0
-            || grid_x >= self.width_segments as f32
-            || grid_z < 0.0
-            || grid_z >= self.height_segments as f32
-        {
-            return 0.0;
-        }
-
-        // Get the four corners of the grid cell
-        let x0 = grid_x as usize;
-        let z0 = grid_z as usize;
+        // Determine the grid cell
+        let x0 = grid_x.floor() as usize;
+        let z0 = grid_z.floor() as usize;
         let x1 = (x0 + 1).min(self.width_segments as usize);
         let z1 = (z0 + 1).min(self.height_segments as usize);
 
-        // Calculate local coordinates within the grid cell (0 to 1)
-        let local_x =
-            (x + width_half) / self.width * self.width_segments as f32 - grid_x;
-        let local_z = (z + height_half) / self.height
-            * self.height_segments as f32
-            - grid_z;
+        // Fractional part within the cell
+        let local_x = grid_x.fract();
+        let local_z = grid_z.fract();
 
-        // Get heights at the four corners
+        // Get the corner heights
         let h00 = self.vertex_grid[z0][x0].y;
         let h10 = self.vertex_grid[z0][x1].y;
         let h01 = self.vertex_grid[z1][x0].y;
@@ -194,6 +178,7 @@ impl TerrainLike for Terrain {
         // Bilinear interpolation
         let h0 = h00 * (1.0 - local_x) + h10 * local_x;
         let h1 = h01 * (1.0 - local_x) + h11 * local_x;
+
         h0 * (1.0 - local_z) + h1 * local_z
     }
 

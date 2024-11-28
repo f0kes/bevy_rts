@@ -3,6 +3,7 @@
 pub mod loading;
 pub mod menu;
 pub mod player;
+pub mod dudliq;
 use crate::loading::LoadingPlugin;
 use crate::menu::MenuPlugin;
 use crate::player::PlayerPlugin;
