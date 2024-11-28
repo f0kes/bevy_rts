@@ -179,22 +179,22 @@ fn setup(
     commands.spawn((
         DirectionalLightBundle {
             directional_light: DirectionalLight {
-                illuminance: light_consts::lux::OVERCAST_DAY,
+                illuminance: 2000.,
                 shadows_enabled: true,
                 ..default()
             },
             transform: Transform {
                 translation: Vec3::new(0.0, 2.0, 0.0),
                 rotation: Quat::from_rotation_x(-PI / 6.)  // tilts down about 30 degrees
-                    * Quat::from_rotation_y(-PI / 3.), // rotates towards left/west about 60 degrees
+                    * Quat::from_rotation_y(-PI / 10.), // rotates towards left/west about 60 degrees
                 ..default()
             },
             // The default cascade config is designed to handle large scenes.
             // As this example has a much smaller world, we can tighten the shadow
             // bounds for better visual quality.
             cascade_shadow_config: CascadeShadowConfigBuilder {
-                first_cascade_far_bound: 4.0,
-                maximum_distance: 10.0,
+                
+                maximum_distance: 100.0,
                 ..default()
             }
             .into(),
@@ -204,7 +204,7 @@ fn setup(
     ));
     commands.insert_resource(AmbientLight {
         color: Color::WHITE,
-        brightness: 500.,
+        brightness: 100.,
     });
 
     //commands.spawn(DebugRender::default());
