@@ -128,6 +128,9 @@ impl Terrain {
         mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, uvs);
         mesh.insert_indices(bevy::render::mesh::Indices::U32(indices));
         mesh.compute_smooth_normals();
+        mesh.generate_tangents().unwrap_or_else(|e| {
+            println!("Failed to generate tangents: {:?}", e);
+        });
 
         Self {
             mesh,

@@ -9,7 +9,7 @@ use avian3d::PhysicsPlugins;
 use bevy::asset::AssetMetaCheck;
 
 use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
-use bevy::pbr::CascadeShadowConfigBuilder;
+use bevy::pbr::{CascadeShadowConfigBuilder, ExtendedMaterial};
 use bevy::prelude::*;
 
 use bevy::window::{PresentMode, PrimaryWindow};
@@ -20,8 +20,11 @@ use bevy_editor_pls::EditorPlugin;
 use bevy_game::player::PlayerPlugin;
 
 use camera::plugin::SmoothCameraPlugin;
+use outline::clash_grass::{CheckerGrassExtension, CheckerGrassMaterialConfig};
 use outline::grass::{GrassPlugin, SpawnGrass};
-use outline::plugin::{TexturableMaterialPlugin, ToonShaderPlugin};
+use outline::plugin::{
+    MyMaterialsPlugin, TexturableMaterialPlugin, ToonShaderPlugin,
+};
 use outline::shader_material::OutlineMaterial;
 use outline::toon_shader::{ToonShaderMaterial, ToonShaderSun};
 
@@ -63,6 +66,7 @@ fn main() {
 
     let asset_plugin = AssetPlugin {
         meta_check: AssetMetaCheck::Never,
+        watch_for_changes_override: Some(true),
         ..default()
     };
 
@@ -75,8 +79,7 @@ fn main() {
     app.add_systems(Startup, setup);
     //app.add_systems(Update, animation_control);
     app.add_plugins(PlayerPlugin);
-    app.add_plugins(TexturableMaterialPlugin::<OutlineMaterial>::default());
-    app.add_plugins(ToonShaderPlugin);
+    app.add_plugins(MyMaterialsPlugin);
     app.add_plugins(PhysicsPlugins::default());
     app.add_plugins(PhysicsDebugPlugin::default());
     //app.add_plugins(GrassPlugin::<Terrain>::default());
@@ -119,7 +122,11 @@ fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ToonShaderMaterial>>,
+    mut toon_materials: ResMut<Assets<ToonShaderMaterial>>,
+    mut standart_materials: ResMut<Assets<StandardMaterial>>,
+    mut grass_materials: ResMut<
+        Assets<ExtendedMaterial<StandardMaterial, CheckerGrassExtension>>,
+    >,
 ) {
     commands.spawn((
         SceneBundle {
@@ -141,17 +148,29 @@ fn setup(
         RigidBody::Static,
         MaterialMeshBundle {
             mesh: mesh,
-            material: materials.add(ToonShaderMaterial {
-                color: Color::srgb(0.4, 0.8, 0.4),
-                cliff_color: Color::srgb(0.6, 0.8, 0.6), //cliff_color: Color::srgb(0.5, 0.5, 0.3),
+            material: grass_materials.add(ExtendedMaterial {
+                base: StandardMaterial {
+                    base_color: Color::srgb(0.4, 0.8, 0.4),
+                    normal_map_texture: Some(
+                        asset_server.load("textures/checker_normal.png"),
+                    ),
 
-                sun_dir: Vec3::new(0.0, 1.0, 1.0),
-                sun_color: Color::srgb(1.0, 1.0, 0.0),
-                camera_pos: Vec3::new(0.0, 0.0, 1.0),
-                ambient_color: Color::srgb(0.0, 1.0, 1.0),
-                bands: 16.0,
-                base_color_texture: None,
+                    ..default()
+                },
+                extension: CheckerGrassExtension {
+                    config: CheckerGrassMaterialConfig {
+                        plane_size_x: TerrainPlaneOptions::default().width,
+                        plane_size_z: TerrainPlaneOptions::default().height,
+                        tile_size: 1.,
+                        normal_tiles_x: 4,
+                    },
+                },
             }),
+            /* standart_materials.add(StandardMaterial {
+                base_color: Color::srgb(0.4, 0.8, 0.4),
+                normal_map_texture: Some(asset_server.load("textures/checker_normal.png")),
+                ..default()
+            }), */
             transform: Transform::from_xyz(0.0, 0.0, 0.0),
             ..default()
         },
@@ -166,7 +185,8 @@ fn setup(
             },
             transform: Transform {
                 translation: Vec3::new(0.0, 2.0, 0.0),
-                rotation: Quat::from_rotation_x(-PI / 4.),
+                rotation: Quat::from_rotation_x(-PI / 6.)  // tilts down about 30 degrees
+                    * Quat::from_rotation_y(-PI / 3.), // rotates towards left/west about 60 degrees
                 ..default()
             },
             // The default cascade config is designed to handle large scenes.
@@ -183,7 +203,7 @@ fn setup(
         ToonShaderSun,
     ));
     commands.insert_resource(AmbientLight {
-        color: Color::srgb(0.1, 0.1, 0.6),
+        color: Color::WHITE,
         brightness: 500.,
     });
 
