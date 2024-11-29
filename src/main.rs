@@ -17,7 +17,7 @@ use bevy::winit::WinitWindows;
 use bevy::DefaultPlugins;
 
 use bevy_editor_pls::EditorPlugin;
-use bevy_game::dudliq::spawn_dudliq;
+use bevy_game::dudliq::{spawn_a_lot_of_dudliqs, spawn_dudliq, DudliqPlugin};
 use bevy_game::player::PlayerPlugin;
 
 use camera::plugin::SmoothCameraPlugin;
@@ -29,6 +29,7 @@ use outline::plugin::{
 use outline::shader_material::OutlineMaterial;
 use outline::toon_shader::{ToonShaderMaterial, ToonShaderSun};
 
+use steering::plugin::SteeringPlugin;
 use world_gen::perlin_terrain::PerlinTerrain;
 use world_gen::terrain::{Terrain, TerrainLike, TerrainPlaneOptions};
 
@@ -95,7 +96,9 @@ fn main() {
         gismo_config,
     );
     app.add_plugins(SmoothCameraPlugin);
-    app.add_systems(Startup, spawn_dudliq);
+    app.add_plugins(SteeringPlugin);
+    app.add_plugins(DudliqPlugin);
+    app.add_systems(Startup, spawn_a_lot_of_dudliqs);
     app.run();
 }
 
@@ -195,7 +198,6 @@ fn setup(
             // As this example has a much smaller world, we can tighten the shadow
             // bounds for better visual quality.
             cascade_shadow_config: CascadeShadowConfigBuilder {
-                
                 maximum_distance: 100.0,
                 ..default()
             }
@@ -208,7 +210,6 @@ fn setup(
         color: Color::WHITE,
         brightness: 100.,
     });
-    
 
     //commands.spawn(DebugRender::default());
 }

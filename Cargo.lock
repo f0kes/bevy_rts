@@ -754,6 +754,7 @@ dependencies = [
  "bevy_asset_loader",
  "bevy_editor_pls",
  "bevy_kira_audio",
+ "bevy_spatial",
  "blenvy",
  "camera",
  "directional_animation",
@@ -767,6 +768,7 @@ dependencies = [
  "rand",
  "ron",
  "serde",
+ "steering",
  "webbrowser",
  "winit",
  "world_gen",
@@ -1146,6 +1148,17 @@ dependencies = [
  "serde",
  "thiserror",
  "uuid",
+]
+
+[[package]]
+name = "bevy_spatial"
+version = "0.9.1"
+source = "git+https://github.com/VitalyArtemiev/bevy-spatial?branch=within#1ee8730f80fef2bc4c4ac24d1bcc6da00d60fa24"
+dependencies = [
+ "bevy",
+ "kd-tree",
+ "num-traits",
+ "typenum",
 ]
 
 [[package]]
@@ -2851,6 +2864,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "kd-tree"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5f89ee4e60e82cf7024e5e94618c646fbf61ce7501dc5898b3d12786442d3682"
+dependencies = [
+ "num-traits",
+ "ordered-float",
+ "paste",
+ "rayon",
+ "typenum",
+]
+
+[[package]]
 name = "khronos-egl"
 version = "6.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3626,6 +3652,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "ordered-float"
+version = "4.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c65ee1f9701bf938026630b455d5315f490640234259037edb259798b3bcf85e"
+dependencies = [
+ "num-traits",
+]
+
+[[package]]
 name = "outline"
 version = "0.1.0"
 dependencies = [
@@ -4351,6 +4386,15 @@ name = "static_assertions"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
+
+[[package]]
+name = "steering"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "bevy_spatial",
+ "movement",
+]
 
 [[package]]
 name = "strict-num"

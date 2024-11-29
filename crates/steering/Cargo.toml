@@ -1,0 +1,9 @@
+[package]
+name = "steering"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bevy = { workspace = true }
+movement = { path = "../movement" }
+bevy_spatial = { workspace = true }

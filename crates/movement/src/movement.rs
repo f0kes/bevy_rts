@@ -23,7 +23,13 @@ impl Default for GlueToGround {
 pub trait MoveInput: Component {
     fn direction(&self) -> Vec3;
 }
-
+#[derive(Component)]
+pub struct Move(pub Vec3);
+impl MoveInput for Move {
+    fn direction(&self) -> Vec3 {
+        self.0
+    }
+}
 pub fn move_unit<T: MoveInput>(
     mut commands: Commands,
     time: Res<Time>,
@@ -92,7 +98,7 @@ pub fn glue_to_ground(
     for (mut transform, mut gtg) in query.iter_mut() {
         let height = terrain
             .get_height(transform.translation.x, transform.translation.z);
-        
+
         transform.translation.y += height - gtg.last_height;
         gtg.last_height = height;
         //transform.translation.y = height;

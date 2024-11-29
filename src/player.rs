@@ -10,7 +10,7 @@ use movement::collide_and_slide::CollideAndSlide;
 use movement::kinematic_character_controller::{
     KinematicCharacterController, KinematicCharacterControllerBundle,
 };
-use movement::movement::{ApplyGravity, GlueToGround, MoveInput};
+use movement::movement::{ApplyGravity, GlueToGround, Move, MoveInput};
 use movement::plugin::{MovementPlugin, MovementPluginConfig};
 use movement::rotate::{
     RotateInDirectionOfMovement, TiltInDirectionOfMovement,
@@ -24,6 +24,7 @@ use outline::shader_material::OutlineMaterial;
 use outline::toon_shader::{
     default_toon_shader_material, ToonShaderMainCamera, ToonShaderMaterial,
 };
+use steering::steering_agent::SpatialEntity;
 
 pub struct PlayerPlugin;
 
@@ -65,31 +66,19 @@ fn spawn_player(
             KinematicCharacterControllerBundle::default(),
             Collider::sphere(0.47),
             RigidBody::Kinematic,
-            /* LockedAxes::new()
-            .lock_rotation_z()
-            .lock_rotation_x()
-            .lock_rotation_y(), */
             RotateInDirectionOfMovement::default(),
             TiltInDirectionOfMovement::default(),
             ReplaceMaterialKeepTextureMarker {
                 material: default_toon_shader_material(),
             },
             StepAnimation::default(),
-           // ApplyGravity,
             GlueToGround::default(),
-            //CollideAndSlide::default(),
+            SpatialEntity,
         ))
         .id();
     let (mut commands, _rig_id, camera_id) =
         spawn_camera_to_follow(p_id, commands);
     commands.entity(camera_id).insert(ToonShaderMainCamera);
-}
-#[derive(Component)]
-pub struct Move(Vec3);
-impl MoveInput for Move {
-    fn direction(&self) -> Vec3 {
-        self.0
-    }
 }
 
 pub fn move_player(

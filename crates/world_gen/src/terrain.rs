@@ -153,7 +153,6 @@ impl Terrain {
 impl TerrainLike for Terrain {
     fn get_height(&self, x: f32, z: f32) -> f32 {
         // Convert world coordinates to grid coordinates
-        // Calculate grid space coordinates
         let grid_x =
             (x + self.width / 2.0) / (self.width / self.width_segments as f32);
         let grid_z = (z + self.height / 2.0)
@@ -162,8 +161,14 @@ impl TerrainLike for Terrain {
         // Determine the grid cell
         let x0 = grid_x.floor() as usize;
         let z0 = grid_z.floor() as usize;
-        let x1 = (x0 + 1).min(self.width_segments as usize);
-        let z1 = (z0 + 1).min(self.height_segments as usize);
+
+        // Subtract 1 from segments to get the maximum valid index
+        let x1 = (x0 + 1).min(self.width_segments as usize - 1);
+        let z1 = (z0 + 1).min(self.height_segments as usize - 1);
+
+        // You might also want to add bounds checking for x0 and z0
+        let x0 = x0.min(self.width_segments as usize - 1);
+        let z0 = z0.min(self.height_segments as usize - 1);
 
         // Fractional part within the cell
         let local_x = grid_x.fract();
@@ -178,10 +183,8 @@ impl TerrainLike for Terrain {
         // Bilinear interpolation
         let h0 = h00 * (1.0 - local_x) + h10 * local_x;
         let h1 = h01 * (1.0 - local_x) + h11 * local_x;
-
         h0 * (1.0 - local_z) + h1 * local_z
     }
-
     fn get_normal(&self, x: f32, z: f32) -> Vec3 {
         // Calculate normal using central differences
         const EPSILON: f32 = 0.01;
