@@ -29,7 +29,7 @@ use outline::plugin::{
 use outline::shader_material::OutlineMaterial;
 use outline::toon_shader::{ToonShaderMaterial, ToonShaderSun};
 
-use steering::plugin::SteeringPlugin;
+use steering::plugin::{SpatialStructure, SteeringPlugin};
 use world_gen::perlin_terrain::PerlinTerrain;
 use world_gen::terrain::{Terrain, TerrainLike, TerrainPlaneOptions};
 
@@ -82,8 +82,8 @@ fn main() {
     //app.add_systems(Update, animation_control);
     app.add_plugins(PlayerPlugin);
     app.add_plugins(MyMaterialsPlugin);
-    app.add_plugins(PhysicsPlugins::default());
-    app.add_plugins(PhysicsDebugPlugin::default());
+    //app.add_plugins(PhysicsPlugins::default());
+    //app.add_plugins(PhysicsDebugPlugin::default());
     //app.add_plugins(GrassPlugin::<Terrain>::default());
     app.add_plugins(FrameTimeDiagnosticsPlugin::default());
     app.add_plugins(LogDiagnosticsPlugin::default());
@@ -96,7 +96,12 @@ fn main() {
         gismo_config,
     );
     app.add_plugins(SmoothCameraPlugin);
-    app.add_plugins(SteeringPlugin);
+    app.add_plugins(SteeringPlugin {
+        spatial_structure: SpatialStructure::Hashmap { grid_size: 5.0 },
+    });
+    /* app.add_plugins(SteeringPlugin {
+        spatial_structure: SpatialStructure::KdTree,
+    });*/
     app.add_plugins(DudliqPlugin);
     app.add_systems(Startup, spawn_a_lot_of_dudliqs);
     app.run();

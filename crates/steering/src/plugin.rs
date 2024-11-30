@@ -5,18 +5,34 @@ use crate::{
     context_map::{
         add_context_map_to_steering_agents, move_based_on_context_map,
     },
+    spatial_hashing::plugin::SpatialHashmapPlugin,
     steering_agent::{add_spatial_entity_to_steering_agents, SpatialEntity},
 };
 
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
 pub struct SteeringBehaviourSet;
 
+pub enum SpatialStructure {
+    Hashmap { grid_size: f32 },
+    KdTree,
+}
+
 #[derive(Component)]
 pub struct SteeringAgent;
-pub struct SteeringPlugin;
+pub struct SteeringPlugin {
+    pub spatial_structure: SpatialStructure,
+}
 impl Plugin for SteeringPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(AutomaticUpdate::<SpatialEntity>::new());
+        match self.spatial_structure {
+            SpatialStructure::Hashmap { grid_size } => {
+                app.add_plugins(SpatialHashmapPlugin { grid_size });
+            }
+            SpatialStructure::KdTree => {
+                app.add_plugins(AutomaticUpdate::<SpatialEntity>::new());
+            }
+        }
+
         app.add_systems(Update, add_context_map_to_steering_agents);
         app.add_systems(
             Update,

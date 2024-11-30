@@ -59,7 +59,7 @@ pub fn replace_standart_materials<T: Material>(
         }
     }
 }
-
+//TODO: Don't add new material each time. Use resource-hashmap <Handle<Texture>, Handle<T>> to store already created materials
 pub fn replace_standart_materials_keep_texture<T: TexturableMaterial>(
     mut commands: Commands,
     query: Query<(Entity, &ReplaceMaterialKeepTextureMarker<T>)>,

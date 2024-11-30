@@ -37,7 +37,7 @@ impl<T: MoveInput> Plugin for MovementPlugin<T> {
             Update,
             (
                 move_unit::<T>,
-                apply_gravity,
+               // apply_gravity,
                 glue_to_ground,
                 rotate_in_direction_of_movement,
                 tilt_in_direction_of_acceleration
@@ -49,10 +49,10 @@ impl<T: MoveInput> Plugin for MovementPlugin<T> {
         app.insert_resource(self.config.clone());
         //app.add_systems(Update, add_collide_and_slide_to_characters);
         // Add collide_and_slide after all other systems that modify LinearVelocity
-        app.add_systems(
+        /* app.add_systems(
             Update,
             collide_and_slide.after(move_unit::<T>).after(apply_gravity),
-        );
+        ); */
 
         //app.add_systems(PostUpdate, vidar_cas::collide_and_slide_system);
         app.add_systems(

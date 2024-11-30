@@ -64,8 +64,8 @@ fn spawn_player(
             },
             Player,
             KinematicCharacterControllerBundle::default(),
-            Collider::sphere(0.47),
-            RigidBody::Kinematic,
+            //Collider::sphere(0.47),
+            //RigidBody::Kinematic,
             RotateInDirectionOfMovement::default(),
             TiltInDirectionOfMovement::default(),
             ReplaceMaterialKeepTextureMarker {
