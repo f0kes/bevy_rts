@@ -1,3 +1,5 @@
+use std::hash::Hash;
+
 use bevy::prelude::*;
 
 pub trait TexturableMaterial: Material {
@@ -6,7 +8,7 @@ pub trait TexturableMaterial: Material {
 
 #[derive(Component, Debug, Reflect)]
 pub struct ReplaceMaterialMarker<T: Material> {
-    pub material: T,
+    pub material: Handle<T>,
 }
 
 #[derive(Component, Debug, Reflect)]
@@ -45,7 +47,6 @@ pub fn replace_standart_materials<T: Material>(
     query: Query<(Entity, &ReplaceMaterialMarker<T>)>,
     with_children: Query<&Children>,
     with_standart_material: Query<&Handle<StandardMaterial>>,
-    mut materials: ResMut<Assets<T>>,
 ) {
     for (entity, marker) in query.iter() {
         let candidates = collect_descendants(entity, &with_children);
@@ -54,8 +55,7 @@ pub fn replace_standart_materials<T: Material>(
             .iter()
             .filter(|&&candidate| with_standart_material.contains(candidate))
         {
-            let new_material = materials.add(marker.material.clone());
-            replace_material(&mut commands, candidate, new_material);
+            replace_material(&mut commands, candidate, marker.material.clone());
         }
     }
 }

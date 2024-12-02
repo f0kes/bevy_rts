@@ -2,18 +2,23 @@
 name = "bevy_game"                               # ToDo
 version = "0.1.0"
 publish = false
-authors = ["f0kes <f0kesppokes@gmail.com>"]        # ToDo: you are the author ;)
+authors = ["f0kes <f0kesppokes@gmail.com>"]      # ToDo: you are the author ;)
 edition = "2021"
 exclude = ["dist", "build", "assets", "credits"]
 
 [workspace]
 members = [
     "crates/camera",
+    "crates/combat",
     "crates/input_actions",
+    "crates/inventory",
+    "crates/meta_components",
+    "crates/misc",
     "crates/movement",
     "crates/outline",
     "crates/ownership",
     "crates/steering",
+
     "crates/world_gen",
     "directional_animation",
     "mobile",
@@ -67,6 +72,9 @@ outline = { path = "./crates/outline" }
 ownership = { path = "./crates/ownership" }
 camera = { path = "./crates/camera" }
 steering = { path = "./crates/steering" }
+inventory = { path = "./crates/inventory" }
+combat = { path = "./crates/combat" }
+
 serde = { version = "1.0.214", features = ["derive"] }
 ron = "0.8.1"
 bevy_editor_pls.workspace = true

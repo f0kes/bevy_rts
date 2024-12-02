@@ -21,9 +21,7 @@ use steering::{
         SteeringAgentTree,
     },
 };
-
-#[derive(Component)]
-pub struct Unit;
+use combat::units::unit::{get_unit_data, Unit, UnitName};
 
 pub struct DudliqPlugin;
 impl Plugin for DudliqPlugin {
@@ -33,65 +31,21 @@ impl Plugin for DudliqPlugin {
     }
 }
 
-pub fn spawn_dudliq(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut materials: ResMut<Assets<OutlineMaterial>>,
-) {
-    let player_handle = asset_server.load("models/dudliq.glb#Scene0");
-    let u_id = commands
-        .spawn((
-            SceneBundle {
-                scene: player_handle,
-                transform: Transform::from_xyz(4., 0.45, 4.),
-                ..Default::default()
-            },
-            KinematicCharacterControllerBundle::default(),
-            //Collider::sphere(0.47),
-            //RigidBody::Kinematic,
-            RotateInDirectionOfMovement::default(),
-            TiltInDirectionOfMovement::default(),
-            /*  ReplaceMaterialKeepTextureMarker {
-                material: default_toon_shader_material(),
-            }, */
-            StepAnimation::default(),
-            GlueToGround::default(),
-            SteeringAgent,
-            Unit,
-        ))
-        .id();
+pub fn spawn_dudliq(mut commands: Commands) {
+    let u_id = commands.spawn((get_unit_data(UnitName::Dudliq),)).id();
 }
-pub fn spawn_a_lot_of_dudliqs(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut materials: ResMut<Assets<OutlineMaterial>>,
-) {
+pub fn spawn_a_lot_of_dudliqs(mut commands: Commands) {
     for n in 0..1000 {
         let angle = (n as f32 / 100.0) * std::f32::consts::TAU;
         let radius = (rand::random::<f32>() * 10.0).max(1.0);
         let x = angle.cos() * radius;
         let z = angle.sin() * radius;
 
-        let player_handle = asset_server.load("models/dudliq.glb#Scene0");
         commands.spawn((
-            SceneBundle {
-                scene: player_handle,
-                transform: Transform::from_xyz(x, 0.3, z),
-                ..Default::default()
-            },
-            KinematicCharacterControllerBundle::default(),
-            //Collider::sphere(0.47),
-            //RigidBody::Kinematic,
-            RotateInDirectionOfMovement::default(),
-            TiltInDirectionOfMovement::default(),
-            ReplaceMaterialKeepTextureMarker {
-                material: default_toon_shader_material(),
-            },
-            StepAnimation::default(),
-            GlueToGround::default(),
-            SteeringAgent,
-            Unit,
+            get_unit_data(UnitName::Dudliq),
+            Transform::from_translation(Vec3::new(x, 0.0, z)),
         ));
+        
     }
 }
 pub fn avoid_others<T: Resource + SpatialStructure>(

@@ -1,0 +1,11 @@
+[package]
+name = "combat"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bevy = { workspace = true }
+movement = { path = "../movement" }
+steering = { path = "../steering" }
+outline = { path = "../outline" }
+misc = { path = "../misc" }

@@ -4,6 +4,7 @@ pub mod loading;
 pub mod menu;
 pub mod player;
 pub mod dudliq;
+pub mod vacuum_spell;
 use crate::loading::LoadingPlugin;
 use crate::menu::MenuPlugin;
 use crate::player::PlayerPlugin;
