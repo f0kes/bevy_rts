@@ -2,7 +2,12 @@ use avian3d::prelude::*;
 
 use bevy::prelude::*;
 
-use camera::camera::spawn_camera_to_follow;
+use bevy::window::PrimaryWindow;
+use camera::camera::{spawn_camera_to_follow, MainCamera};
+use combat::inventory::Inventory;
+use combat::spells::spell::{ActionBundle, ActionData};
+use combat::spells::vacuum::VacuumSpell;
+use combat::teams::{Team, TEAM_PLAYER};
 use input_actions::{
     action::Action, input_map::InputMap, plugin::InputActionsPlugin,
 };
@@ -10,7 +15,9 @@ use movement::collide_and_slide::CollideAndSlide;
 use movement::kinematic_character_controller::{
     KinematicCharacterController, KinematicCharacterControllerBundle,
 };
-use movement::movement::{ApplyGravity, GlueToGround, Move, MoveInput};
+use movement::movement::{
+    ApplyGravity, CursorPos, GlueToGround, Move, MoveInput,
+};
 use movement::plugin::{MovementPlugin, MovementPluginConfig};
 use movement::rotate::{
     RotateInDirectionOfMovement, TiltInDirectionOfMovement,
@@ -25,6 +32,8 @@ use outline::toon_shader::{
     default_toon_shader_material, ToonShaderMainCamera, ToonShaderMaterial,
 };
 use steering::steering_agent::SpatialEntity;
+use world_gen::raycast::{sphere_trace_heightmap, SphereTrace};
+use world_gen::terrain::{self, Terrain};
 
 pub struct PlayerPlugin;
 
@@ -42,6 +51,8 @@ impl Plugin for PlayerPlugin {
             default_deceleration: 200.0,
         }));
         app.add_systems(Update, move_player);
+        app.add_systems(Update, update_cursor_pos);
+        app.add_systems(Update, collect_units);
     }
 }
 
@@ -74,6 +85,9 @@ fn spawn_player(
             StepAnimation::default(),
             GlueToGround::default(),
             SpatialEntity,
+            Inventory::new(10),
+            TEAM_PLAYER,
+            ApplyGravity,
         ))
         .id();
     let (mut commands, _rig_id, camera_id) =
@@ -120,3 +134,111 @@ pub fn move_player(
         commands.entity(entity).insert(Move(transformed_movement));
     }
 }
+pub fn update_cursor_pos(
+    mut commands: Commands,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+    player_query: Query<Entity, With<Player>>,
+    camera_query: Query<
+        (&Transform, &GlobalTransform, &Camera),
+        With<MainCamera>,
+    >,
+    terrain: Res<Terrain>,
+) {
+    let window = window_query.single();
+    let cursor_position = if let Some(pos) = window.cursor_position() {
+        pos
+    } else {
+        return;
+    };
+
+    let (camera_transform, camera_global_transform, camera) =
+        camera_query.single();
+
+    // Convert cursor to ndc
+    let ndc = Vec2::new(
+        (2.0 * cursor_position.x) / window.width() - 1.0,
+        1.0 - (2.0 * cursor_position.y) / window.height(),
+    );
+
+    if let Some(ray_direction) = camera
+        .ndc_to_world(camera_global_transform, Vec3::new(ndc.x, ndc.y, 1.0))
+        .map(|world_pos| {
+            (world_pos - camera_global_transform.translation()).normalize()
+        })
+    {
+        let camera_pos = camera_global_transform.translation();
+        let hit_point_opt = sphere_trace_heightmap(
+            SphereTrace::new(camera_pos, ray_direction),
+            &*terrain,
+        );
+        if let Some(hit_point) = hit_point_opt {
+            for entity in player_query.iter() {
+                commands.entity(entity).insert(CursorPos(hit_point));
+            }
+        } else {
+            println!("Update Cursor: No hit point");
+        }
+    } else {
+        println!("Update Cursor: No ray direction");
+    }
+}
+
+pub fn collect_units(
+    mut commands: Commands,
+    action_input: Res<ButtonInput<Action>>,
+    player_query: Query<(Entity), With<Player>>,
+    vacuum_query: Query<(Entity, &ActionData), With<VacuumSpell>>,
+) {
+    let player = match player_query.get_single() {
+        Ok(player) => player,
+        Err(_) => return,
+    };
+    let mut vacuum_exists = false;
+    for (_, action_data) in vacuum_query.iter() {
+        if action_data.actor == player {
+            vacuum_exists = true;
+        }
+    }
+    if action_input.pressed(Action::Collect) && !vacuum_exists {
+        commands.spawn(ActionBundle::vacuum_spell(
+            VacuumSpell {
+                range: 20.,
+                width: 2.,
+                pull_force: 2.,
+            },
+            player,
+        ));
+    } else if !action_input.pressed(Action::Collect) {
+        for (entity, _) in vacuum_query.iter() {
+            commands.entity(entity).despawn();
+        }
+    }
+}
+/* #[derive(Component)]
+pub struct CursorFollower;
+
+pub fn test_cursor_setup(
+    mut commands: Commands,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut meshes: ResMut<Assets<Mesh>>,
+) {
+    commands.spawn((
+        CursorFollower,
+        PbrBundle {
+            mesh: meshes.add(Mesh::from(Cuboid::from_length(1.0))),
+            material: materials.add(Color::WHITE),
+            ..Default::default()
+        },
+    ));
+}
+pub fn test_cursor_update(
+    mut follower_query: Query<&mut Transform, With<CursorFollower>>,
+    cursor_query: Query<&CursorPos>,
+) {
+    for cursor_pos in cursor_query.iter() {
+        for mut follower_transform in follower_query.iter_mut() {
+            follower_transform.translation = cursor_pos.0;
+        }
+    }
+}
+ */

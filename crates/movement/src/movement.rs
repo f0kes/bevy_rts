@@ -19,6 +19,8 @@ impl Default for GlueToGround {
         Self { last_height: 0.0 }
     }
 }
+#[derive(Component, Debug, Reflect)]
+pub struct Grounded;
 
 pub trait MoveInput: Component {
     fn direction(&self) -> Vec3;
@@ -30,6 +32,8 @@ impl MoveInput for Move {
         self.0
     }
 }
+#[derive(Component)]
+pub struct CursorPos(pub Vec3);
 pub fn move_unit<T: MoveInput>(
     mut commands: Commands,
     time: Res<Time>,
@@ -82,13 +86,18 @@ pub fn move_unit<T: MoveInput>(
 
 pub fn apply_gravity(
     time: Res<Time>,
-    gravity: Res<Gravity>,
+
     mut query: Query<(Entity, &mut MoveVelocity), With<ApplyGravity>>,
+    grounded: Query<&Grounded>,
 ) {
     let dt = time.delta_seconds();
 
     for (entity, mut velocity) in query.iter_mut() {
-        velocity.0 += gravity.0 * dt;
+        if grounded.get(entity).is_ok() {
+            velocity.0.y = 0.0;
+        } else {
+            velocity.0.y -= 9.81 * dt;
+        }
     }
 }
 pub fn glue_to_ground(
@@ -102,5 +111,26 @@ pub fn glue_to_ground(
         transform.translation.y += height - gtg.last_height;
         gtg.last_height = height;
         //transform.translation.y = height;
+    }
+}
+
+pub fn add_grounded(
+    mut commands: Commands,
+    terrain: Res<Terrain>,
+    mut query: Query<
+        (Entity, &mut Transform, &mut MoveVelocity),
+        (With<GlueToGround>),
+    >,
+) {
+    for (entity, mut transform, mut velocity) in query.iter_mut() {
+        let height = terrain
+            .get_height(transform.translation.x, transform.translation.z);
+        if transform.translation.y <= height {
+            velocity.0.y = 0.0;
+            transform.translation.y = height;
+            commands.entity(entity).insert(Grounded);
+        } else {
+            commands.entity(entity).remove::<Grounded>();
+        }
     }
 }

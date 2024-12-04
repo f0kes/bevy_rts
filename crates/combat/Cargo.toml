@@ -9,3 +9,4 @@ movement = { path = "../movement" }
 steering = { path = "../steering" }
 outline = { path = "../outline" }
 misc = { path = "../misc" }
+input_actions = { path = "../input_actions" }

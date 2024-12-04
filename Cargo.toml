@@ -11,7 +11,7 @@ members = [
     "crates/camera",
     "crates/combat",
     "crates/input_actions",
-    "crates/inventory",
+    
     "crates/meta_components",
     "crates/misc",
     "crates/movement",
@@ -72,7 +72,7 @@ outline = { path = "./crates/outline" }
 ownership = { path = "./crates/ownership" }
 camera = { path = "./crates/camera" }
 steering = { path = "./crates/steering" }
-inventory = { path = "./crates/inventory" }
+
 combat = { path = "./crates/combat" }
 
 serde = { version = "1.0.214", features = ["derive"] }

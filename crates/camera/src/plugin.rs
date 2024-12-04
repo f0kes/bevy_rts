@@ -23,11 +23,11 @@ pub struct SmoothCameraPlugin;
 impl Plugin for SmoothCameraPlugin {
     fn build(&self, app: &mut App) {
         app.configure_sets(
-            PhysicsSchedule,
+            Update,
             CameraSet.after(PhysicsStepSet::Last),
         )
         .configure_sets(
-            PhysicsSchedule,
+            Update,
             (CameraSystemSet::Input, CameraSystemSet::Follow)
                 .chain()
                 .in_set(CameraSet),

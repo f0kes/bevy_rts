@@ -148,6 +148,12 @@ impl Terrain {
         let noise = noise::Perlin::new(noise);
         Self::new(terrain_plane_options, noise)
     }
+    pub fn within_bounds(&self, x: f32, z: f32) -> bool {
+        x >= -self.width / 2.0
+            && x <= self.width / 2.0
+            && z >= -self.height / 2.0
+            && z <= self.height / 2.0
+    }
 }
 
 impl TerrainLike for Terrain {

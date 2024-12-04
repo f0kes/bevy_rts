@@ -2,10 +2,8 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use avian3d::prelude::{
-    ColliderConstructor, CollisionMargin, PhysicsDebugPlugin, PhysicsGizmos,
-    RigidBody,
+    ColliderConstructor, CollisionMargin, PhysicsGizmos, RigidBody,
 };
-use avian3d::PhysicsPlugins;
 use bevy::asset::AssetMetaCheck;
 
 use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
@@ -17,20 +15,17 @@ use bevy::winit::WinitWindows;
 use bevy::DefaultPlugins;
 
 use bevy_editor_pls::EditorPlugin;
-use bevy_game::dudliq::{spawn_a_lot_of_dudliqs, spawn_dudliq, DudliqPlugin};
+use bevy_game::dudliq::{spawn_a_lot_of_dudliqs, DudliqPlugin};
 use bevy_game::player::PlayerPlugin;
 
 use camera::plugin::SmoothCameraPlugin;
+use combat::spells::plugin::SpellsPlugin;
+use combat::units::plugin::UnitsPlugin;
 use outline::clash_grass::{CheckerGrassExtension, CheckerGrassMaterialConfig};
-use outline::grass::{GrassPlugin, SpawnGrass};
-use outline::plugin::{
-    MyMaterialsPlugin, TexturableMaterialPlugin, ToonShaderPlugin,
-};
-use outline::shader_material::OutlineMaterial;
+use outline::plugin::MyMaterialsPlugin;
 use outline::toon_shader::{ToonShaderMaterial, ToonShaderSun};
 
 use steering::plugin::{SpatialStructure, SteeringPlugin};
-use world_gen::perlin_terrain::PerlinTerrain;
 use world_gen::terrain::{Terrain, TerrainLike, TerrainPlaneOptions};
 
 use std::f32::consts::PI;
@@ -41,8 +36,6 @@ use winit::window::Icon;
 #[derive(Component, Reflect)]
 #[reflect(Component)]
 pub struct Dude;
-
-
 
 fn main() {
     let mut app = App::new();
@@ -104,8 +97,11 @@ fn main() {
     /* app.add_plugins(SteeringPlugin {
         spatial_structure: SpatialStructure::KdTree,
     });*/
+    app.add_plugins(UnitsPlugin);
     app.add_plugins(DudliqPlugin);
     app.add_systems(Startup, spawn_a_lot_of_dudliqs);
+    app.add_plugins(SpellsPlugin);
+
     app.run();
 }
 
@@ -134,8 +130,8 @@ fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut toon_materials: ResMut<Assets<ToonShaderMaterial>>,
-    mut standart_materials: ResMut<Assets<StandardMaterial>>,
+    toon_materials: ResMut<Assets<ToonShaderMaterial>>,
+    standart_materials: ResMut<Assets<StandardMaterial>>,
     mut grass_materials: ResMut<
         Assets<ExtendedMaterial<StandardMaterial, CheckerGrassExtension>>,
     >,

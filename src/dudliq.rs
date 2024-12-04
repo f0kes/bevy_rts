@@ -1,27 +1,14 @@
-use avian3d::prelude::{Collider, RigidBody};
 use bevy::prelude::*;
-use bevy_spatial::{kdtree::KDTree3, AutomaticUpdate, SpatialAccess};
-use movement::{
-    kinematic_character_controller::KinematicCharacterControllerBundle,
-    movement::GlueToGround,
-    rotate::{RotateInDirectionOfMovement, TiltInDirectionOfMovement},
-    step_animation::StepAnimation,
-};
-use outline::{
-    material_replace::ReplaceMaterialKeepTextureMarker,
-    shader_material::OutlineMaterial,
-    toon_shader::default_toon_shader_material,
-};
+
+use combat::units::unit::{get_unit_data, Unit, UnitName};
 use steering::{
     context_map::ContextMap,
-    plugin::{SteeringAgent, SteeringBehavioursAppExt},
+    plugin::SteeringBehavioursAppExt,
     spatial_hashing::spatial_hashmap::SpatialHashmap,
     steering_agent::{
         get_nearby_unit_positions, SpatialEntity, SpatialStructure,
-        SteeringAgentTree,
     },
 };
-use combat::units::unit::{get_unit_data, Unit, UnitName};
 
 pub struct DudliqPlugin;
 impl Plugin for DudliqPlugin {
@@ -45,7 +32,6 @@ pub fn spawn_a_lot_of_dudliqs(mut commands: Commands) {
             get_unit_data(UnitName::Dudliq),
             Transform::from_translation(Vec3::new(x, 0.0, z)),
         ));
-        
     }
 }
 pub fn avoid_others<T: Resource + SpatialStructure>(

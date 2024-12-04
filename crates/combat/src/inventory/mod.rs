@@ -1,6 +1,5 @@
+use crate::units::unit::{get_unit_data, UnitName};
 use bevy::prelude::*;
-use combat::units::unit::{get_unit_data, UnitName};
-
 
 #[derive(Component)]
 pub struct Inventory {
@@ -28,13 +27,13 @@ pub enum AddError {
     InvalidItem,
 }
 impl Inventory {
-    fn new(size: u32) -> Self {
+    pub fn new(size: u32) -> Self {
         Self {
             slots: vec![ItemContainer::Empty; size as usize],
             size,
         }
     }
-    fn add(&mut self, item: Item, count: u32) -> AddResult {
+    pub fn add(&mut self, item: Item, count: u32) -> AddResult {
         let mut remaining = count;
 
         // First pass: fill existing stacks

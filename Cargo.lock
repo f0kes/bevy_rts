@@ -762,7 +762,6 @@ dependencies = [
  "embed-resource",
  "image 0.25.1",
  "input_actions",
- "inventory",
  "log",
  "movement",
  "outline",
@@ -1684,6 +1683,7 @@ name = "combat"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "input_actions",
  "misc",
  "movement",
  "outline",
@@ -2794,14 +2794,6 @@ version = "0.1.0"
 dependencies = [
  "bevy",
  "serde",
-]
-
-[[package]]
-name = "inventory"
-version = "0.1.0"
-dependencies = [
- "bevy",
- "combat",
 ]
 
 [[package]]

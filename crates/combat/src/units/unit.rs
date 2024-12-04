@@ -2,7 +2,7 @@ use bevy::{ecs::query, prelude::*, utils::HashMap};
 use misc::disabled::ToggleCommands;
 use movement::{
     kinematic_character_controller::KinematicCharacterControllerBundle,
-    movement::GlueToGround,
+    movement::{ApplyGravity, GlueToGround},
     rotate::{RotateInDirectionOfMovement, TiltInDirectionOfMovement},
     step_animation::StepAnimation,
 };
@@ -11,6 +11,8 @@ use outline::{
     toon_shader::{default_toon_shader_material, ToonShaderMaterial},
 };
 use steering::plugin::SteeringAgent;
+
+use crate::teams::TEAM_PLAYER;
 #[derive(Component, Clone, Copy, Debug)]
 pub struct Unit {
     pub unit_name: UnitName,
@@ -38,7 +40,7 @@ pub enum UnitName {
     Dudliq,
 }
 
-#[derive(Resource)]
+#[derive(Resource, Default)]
 pub struct UnitModels {
     pub names_to_handles: HashMap<UnitName, Handle<Scene>>,
 }
@@ -81,6 +83,8 @@ pub fn spawn_units(
             ReplaceMaterialKeepTextureMarker {
                 material: default_toon_shader_material(),
             },
+            ApplyGravity,
+            TEAM_PLAYER,
         ));
 
         commands.entity(entity).insert(UnitSpawnedMarker);
