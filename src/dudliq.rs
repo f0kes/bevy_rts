@@ -19,7 +19,7 @@ impl Plugin for DudliqPlugin {
 }
 
 pub fn spawn_dudliq(mut commands: Commands) {
-    let u_id = commands.spawn((get_unit_data(UnitName::Dudliq),)).id();
+    let _u_id = commands.spawn((get_unit_data(UnitName::Dudliq),)).id();
 }
 pub fn spawn_a_lot_of_dudliqs(mut commands: Commands) {
     for n in 0..1000 {
@@ -37,7 +37,7 @@ pub fn spawn_a_lot_of_dudliqs(mut commands: Commands) {
 pub fn avoid_others<T: Resource + SpatialStructure>(
     tree: Res<T>,
     mut query: Query<(Entity, &Transform, &mut ContextMap, &Unit)>,
-    mut others_query: Query<
+    others_query: Query<
         (Entity, &Transform),
         (Without<Unit>, With<SpatialEntity>),
     >,

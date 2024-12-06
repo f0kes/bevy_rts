@@ -10,3 +10,4 @@ steering = { path = "../steering" }
 outline = { path = "../outline" }
 misc = { path = "../misc" }
 input_actions = { path = "../input_actions" }
+meta_components = { path = "../meta_components" }

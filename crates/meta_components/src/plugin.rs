@@ -1,10 +1,10 @@
 use bevy::prelude::*;
 
-use crate::in_world::{on_enter_world, on_exit_world};
+use crate::in_world::InWorldPlugin;
 
 pub struct MetaComponentsPlugin;
 impl Plugin for MetaComponentsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, (on_enter_world, on_exit_world));
+        app.add_plugins(InWorldPlugin);
     }
 }

@@ -1,11 +1,8 @@
-use avian3d::prelude::*;
 use bevy::input::mouse::MouseWheel;
-use bevy::math::VectorSpace;
 use bevy::prelude::*;
 use bevy::render::camera::ScalingMode;
-use bevy::window::PrimaryWindow;
 
-use crate::follow::{Follow, TweenMode};
+use crate::follow::Follow;
 
 #[derive(Reflect)]
 pub enum CameraMode {
@@ -68,38 +65,6 @@ pub struct CameraRigBundle {
 pub struct CameraInput {
     pub pos: Vec3,
     pub zoom: f32,
-}
-
-pub fn update_follow_camera(
-    mut commands: Commands,
-    mut camera: Query<(Entity, &CameraHolder, &CameraInput, &mut Transform)>,
-    entities: Query<&GlobalTransform>,
-    time: Res<Time>,
-    mut gizmos: Gizmos,
-) {
-    for (rig_entity, camera_holder, input, mut holder_transform) in
-        camera.iter_mut()
-    {
-        match camera_holder.mode {
-            CameraMode::FollowEntity { target, weight } => {
-                if let Some(target) = target {
-                    if let Ok(_target_global_transform) = entities.get(target) {
-                        /*  commands.entity(rig_entity).insert(
-                            Follow::default()
-                                .with_target(target)
-                                .with_delta_mode()
-                                .clone(),
-                        ); */
-                        /* gizmos.cuboid(
-                            *holder_transform,
-                            Color::srgb(1.0, 0.0, 0.0),
-                        ); */
-                    }
-                }
-            }
-            CameraMode::Free => {}
-        }
-    }
 }
 
 pub trait RemoveY {
@@ -180,19 +145,18 @@ pub fn zoom(
         Entity,
         &mut Transform,
     )>,
-    mut camera_query: Query<
-        (&mut GlobalTransform),
+    camera_query: Query<
+        &mut GlobalTransform,
         (With<MainCamera>, Without<CameraHolder>),
     >,
-    mut target_entity_query: Query<
+    target_entity_query: Query<
         &Transform,
         (Without<MainCamera>, Without<CameraInput>),
     >,
-    time: Res<Time>,
 ) {
     for (input, mut holder, _entity, mut rig_transform) in rig_query.iter_mut()
     {
-        if let Ok(mut camera_transform) = camera_query.get_single_mut() {
+        if let Ok(_) = camera_query.get_single() {
             let pivot_pos = match holder.mode {
                 CameraMode::FollowEntity { target, .. } => {
                     if let Some(target_entity) = target {
@@ -209,7 +173,7 @@ pub fn zoom(
                 }
                 CameraMode::Free => rig_transform.translation,
             };
-            let target_pos = rig_transform.translation;
+
             let new_zoom =
                 holder.current_zoom - input.zoom * holder.zoom_percentage_speed;
             holder.current_zoom =
@@ -217,14 +181,10 @@ pub fn zoom(
 
             let zoom_direction =
                 (rig_transform.translation - pivot_pos).normalize_or_zero();
-            let zoom_delta =
-                 zoom_direction * holder.current_zoom;
+            let zoom_delta = zoom_direction * holder.current_zoom;
 
-            rig_transform.translation +=
-                zoom_delta - holder.last_zoom_delta;
+            rig_transform.translation += zoom_delta - holder.last_zoom_delta;
             holder.last_zoom_delta = zoom_delta;
-
-          
         }
     }
 }

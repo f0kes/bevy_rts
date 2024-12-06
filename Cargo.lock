@@ -763,6 +763,8 @@ dependencies = [
  "image 0.25.1",
  "input_actions",
  "log",
+ "meta_components",
+ "misc",
  "movement",
  "outline",
  "ownership",
@@ -1684,6 +1686,7 @@ version = "0.1.0"
 dependencies = [
  "bevy",
  "input_actions",
+ "meta_components",
  "misc",
  "movement",
  "outline",

@@ -1,5 +1,6 @@
-use bevy::{ecs::query, prelude::*, utils::HashMap};
-use misc::disabled::ToggleCommands;
+use bevy::{prelude::*, utils::HashMap};
+
+use meta_components::in_world::InWorld;
 use movement::{
     kinematic_character_controller::KinematicCharacterControllerBundle,
     movement::{ApplyGravity, GlueToGround},
@@ -8,7 +9,7 @@ use movement::{
 };
 use outline::{
     material_replace::ReplaceMaterialKeepTextureMarker,
-    toon_shader::{default_toon_shader_material, ToonShaderMaterial},
+    toon_shader::default_toon_shader_material,
 };
 use steering::plugin::SteeringAgent;
 
@@ -84,6 +85,7 @@ pub fn spawn_units(
                 material: default_toon_shader_material(),
             },
             ApplyGravity,
+            InWorld,
             TEAM_PLAYER,
         ));
 

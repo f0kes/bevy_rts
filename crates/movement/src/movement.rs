@@ -34,16 +34,22 @@ impl MoveInput for Move {
 }
 #[derive(Component)]
 pub struct CursorPos(pub Vec3);
+
+#[derive(Component, Debug, Reflect,Clone, Copy)]
+pub struct CantMove;
 pub fn move_unit<T: MoveInput>(
     mut commands: Commands,
     time: Res<Time>,
     movement_config: Res<MovementPluginConfig>,
-    mut query: Query<(Entity, &mut MoveVelocity, &T)>,
+    mut query: Query<(Entity, &mut MoveVelocity, &T, Option<&CantMove>)>,
 ) {
     if time.delta_seconds() <= 0.0 {
         return;
     }
-    for (entity, mut velocity, input) in query.iter_mut() {
+    for (entity, mut velocity, input, cant_move_opt) in query.iter_mut() {
+        if cant_move_opt.is_some() {
+            continue;
+        }
         let mut direction = input.direction();
 
         if direction.length_squared() > 0.1 {

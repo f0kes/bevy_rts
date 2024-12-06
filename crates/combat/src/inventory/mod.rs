@@ -1,3 +1,7 @@
+pub mod remove_from_world;
+pub mod systems;
+pub mod plugin;
+
 use crate::units::unit::{get_unit_data, UnitName};
 use bevy::prelude::*;
 
@@ -33,15 +37,16 @@ impl Inventory {
             size,
         }
     }
-    pub fn add(&mut self, item: Item, count: u32) -> AddResult {
+    pub fn try_put(&mut self, item: Item, count: u32) -> AddResult {
         let mut remaining = count;
 
         // First pass: fill existing stacks
         for slot in &mut self.slots {
-            if let ItemContainer::Item {
-                item: existing,
+            if let ItemContainer::Occupied {
+                item_type: existing,
                 count: current,
                 max_count,
+                
             } = slot
             {
                 if *existing == item {
@@ -62,8 +67,8 @@ impl Inventory {
             if let ItemContainer::Empty = slot {
                 let max_count = item.get_stack_size();
                 let add_amount = remaining.min(max_count);
-                *slot = ItemContainer::Item {
-                    item,
+                *slot = ItemContainer::Occupied {
+                    item_type: item,
                     count: add_amount,
                     max_count,
                 };
@@ -86,24 +91,53 @@ impl Inventory {
             }
         }
     }
+    pub fn try_take(&mut self, item: Item, count: u32) -> u32 {
+        let mut remaining = count;
+
+        for slot in &mut self.slots {
+            if let ItemContainer::Occupied {
+                item_type: existing,
+                count: current,
+                max_count: _,
+                
+            } = slot
+            {
+                if *existing == item {
+                    let take_amount = remaining.min(*current);
+                    *current -= take_amount;
+                    remaining -= take_amount;
+
+                    if *current == 0 {
+                        *slot = ItemContainer::Empty;
+                    }
+
+                    if remaining == 0 {
+                        return count;
+                    }
+                }
+            }
+        }
+
+        count - remaining
+    }
 }
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub enum ItemContainer {
     Empty,
-    Item {
-        item: Item,
+    Occupied {
+        item_type: Item,
         count: u32,
         max_count: u32,
     },
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Item {
-    Unit { name: UnitName, entity: Entity },
+    Unit { name: UnitName },
 }
 impl Item {
     pub fn get_stack_size(&self) -> u32 {
         match self {
-            Item::Unit { name, entity: _ } => get_unit_data(*name).stack_size,
+            Item::Unit { name } => get_unit_data(*name).stack_size,
         }
     }
 }

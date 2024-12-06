@@ -85,7 +85,7 @@ fn spawn_player(
             StepAnimation::default(),
             GlueToGround::default(),
             SpatialEntity,
-            Inventory::new(10),
+            Inventory::new(10000),
             TEAM_PLAYER,
             ApplyGravity,
         ))
@@ -205,6 +205,7 @@ pub fn collect_units(
                 range: 20.,
                 width: 2.,
                 pull_force: 2.,
+                eat_range: 1.,
             },
             player,
         ));

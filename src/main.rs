@@ -19,8 +19,11 @@ use bevy_game::dudliq::{spawn_a_lot_of_dudliqs, DudliqPlugin};
 use bevy_game::player::PlayerPlugin;
 
 use camera::plugin::SmoothCameraPlugin;
+use combat::inventory::plugin::InventoryPlugin;
 use combat::spells::plugin::SpellsPlugin;
 use combat::units::plugin::UnitsPlugin;
+use meta_components::plugin::MetaComponentsPlugin;
+use misc::disabled::ComponentTogglePlugin;
 use outline::clash_grass::{CheckerGrassExtension, CheckerGrassMaterialConfig};
 use outline::plugin::MyMaterialsPlugin;
 use outline::toon_shader::{ToonShaderMaterial, ToonShaderSun};
@@ -101,7 +104,9 @@ fn main() {
     app.add_plugins(DudliqPlugin);
     app.add_systems(Startup, spawn_a_lot_of_dudliqs);
     app.add_plugins(SpellsPlugin);
-
+    app.add_plugins(InventoryPlugin);
+    app.add_plugins(MetaComponentsPlugin);
+    
     app.run();
 }
 

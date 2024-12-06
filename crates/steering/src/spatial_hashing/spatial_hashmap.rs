@@ -1,5 +1,9 @@
 use crate::spatial_hashing::spatial_query::SpatialQuery;
-use bevy::{math::ivec2, prelude::*, utils::hashbrown::{hash_map::Iter, HashMap}};
+use bevy::{
+    math::ivec2,
+    prelude::*,
+    utils::hashbrown::{hash_map::Iter, HashMap},
+};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Grid {

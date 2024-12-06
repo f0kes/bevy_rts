@@ -1,5 +1,6 @@
 pub mod blueprints;
 pub mod disabled;
+pub mod plugin;
 
 pub fn add(left: usize, right: usize) -> usize {
     left + right
