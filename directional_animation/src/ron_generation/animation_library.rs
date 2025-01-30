@@ -1,6 +1,11 @@
-use bevy::{asset::LoadState, prelude::*, render::texture::ImageSampler, utils::HashMap};
+use bevy::{
+    asset::LoadState, prelude::*, render::texture::ImageSampler, utils::HashMap,
+};
 
-use super::{AnimationLoadData, AnimationTypes, AnimationsCollection, DirectionalRotationMatcher};
+use super::{
+    AnimationLoadData, AnimationTypes, AnimationsCollection,
+    DirectionalRotationMatcher,
+};
 
 type ImageHandles = Vec<Handle<Image>>;
 
@@ -29,7 +34,9 @@ pub struct MyAnimationClip {
     pub texture_atlas: Handle<Image>,
 }
 
-impl<T: AnimationTypes> From<&AnimationLoadData<T>> for AnimationWithHandles<T> {
+impl<T: AnimationTypes> From<&AnimationLoadData<T>>
+    for AnimationWithHandles<T>
+{
     fn from(data: &AnimationLoadData<T>) -> Self {
         AnimationWithHandles {
             character: data.character.clone(),
@@ -50,10 +57,17 @@ impl<T: AnimationTypes> AnimationLibrary<T> {
             animations: HashMap::new(),
         }
     }
-    pub fn get_animation(&self, key: &AnimationKey<T>) -> Option<&MyAnimationClip> {
+    pub fn get_animation(
+        &self,
+        key: &AnimationKey<T>,
+    ) -> Option<&MyAnimationClip> {
         self.animations.get(key)
     }
-    pub fn add_animation(&mut self, key: AnimationKey<T>, clip: MyAnimationClip) {
+    pub fn add_animation(
+        &mut self,
+        key: AnimationKey<T>,
+        clip: MyAnimationClip,
+    ) {
         self.animations.insert(key, clip);
     }
     pub fn remove_animation(&mut self, key: &AnimationKey<T>) {
@@ -82,12 +96,18 @@ impl<T: AnimationTypes> AnimationLibrary<T> {
 
 #[derive(Resource, Default)]
 pub struct AnimationWithPathsToHandles<T: AnimationTypes> {
-    pub paths_to_handles: HashMap<Handle<AnimationsWithPaths<T>>, Option<AnimationsWithHandles<T>>>,
+    pub paths_to_handles: HashMap<
+        Handle<AnimationsWithPaths<T>>,
+        Option<AnimationsWithHandles<T>>,
+    >,
     pub padding: Option<UVec2>,
     pub sampling: Option<ImageSampler>,
 }
 impl<T: AnimationTypes> AnimationWithPathsToHandles<T> {
-    pub fn add_collection(&mut self, collection: Handle<AnimationsCollection<T>>) {
+    pub fn add_collection(
+        &mut self,
+        collection: Handle<AnimationsCollection<T>>,
+    ) {
         self.paths_to_handles.insert(collection, None);
     }
     pub fn set_padding(&mut self, padding: UVec2) {
@@ -115,12 +135,13 @@ impl<T: AnimationTypes> AnimationWithPathsToHandles<T> {
                     };
 
                     // Create texture atlas outside the closure
-                    let (texture_atlas_layout, texture_atlas) = create_texture_atlas(
-                        animation.frames.clone(),
-                        self.padding,
-                        self.sampling.clone(),
-                        &mut textures,
-                    );
+                    let (texture_atlas_layout, texture_atlas) =
+                        create_texture_atlas(
+                            animation.frames.clone(),
+                            self.padding,
+                            self.sampling.clone(),
+                            &mut textures,
+                        );
                     let texture_atlas_layout_handle =
                         texture_atlas_layouts.add(texture_atlas_layout);
                     let clip = MyAnimationClip {
@@ -142,7 +163,10 @@ impl<T: AnimationTypes> AnimationWithPathsToHandles<T> {
 }
 
 pub fn are_all_animation_sprites_loaded<T: AnimationTypes>(
-    paths_to_handles: &HashMap<Handle<AnimationsWithPaths<T>>, Option<AnimationsWithHandles<T>>>,
+    paths_to_handles: &HashMap<
+        Handle<AnimationsWithPaths<T>>,
+        Option<AnimationsWithHandles<T>>,
+    >,
     asset_server: &AssetServer,
 ) -> bool {
     paths_to_handles
@@ -152,10 +176,12 @@ pub fn are_all_animation_sprites_loaded<T: AnimationTypes>(
                 return false;
             }
 
-            let animations_with_handles = animations_with_handles_option.as_ref().unwrap();
+            let animations_with_handles =
+                animations_with_handles_option.as_ref().unwrap();
             animations_with_handles.iter().all(|animation| {
                 animation.frames.iter().all(|frame_handle| {
-                    let state_option = asset_server.get_load_state(frame_handle);
+                    let state_option =
+                        asset_server.get_load_state(frame_handle);
                     let state = state_option.unwrap_or(LoadState::NotLoaded);
                     state == LoadState::Loaded
                 })
@@ -185,7 +211,8 @@ pub fn create_texture_atlas(
         texture_atlas_builder.add_texture(Some(id), texture);
     }
     texture_atlas_builder.max_size(UVec2::new(16384, 16384));
-    let (texture_atlas_layout, texture) = texture_atlas_builder.build().unwrap();
+    let (texture_atlas_layout, texture) =
+        texture_atlas_builder.build().unwrap();
     let texture = textures.add(texture);
 
     // Update the sampling settings of the texture atlas
@@ -207,25 +234,28 @@ pub fn load_sprites<T: AnimationTypes>(
             continue;
         }
 
-        let animations_with_paths =
-            match animation_collections_assets.get(animations_with_paths_handle) {
-                Some(collection) => collection,
-                None => continue,
-            };
+        let animations_with_paths = match animation_collections_assets
+            .get(animations_with_paths_handle)
+        {
+            Some(collection) => collection,
+            None => continue,
+        };
 
-        let animations_with_handles: AnimationsWithHandles<T> = animations_with_paths
-            .animations
-            .iter()
-            .map(|animation| {
-                let mut animation_with_handles = AnimationWithHandles::<T>::from(animation);
-                animation_with_handles.frames = animation
-                    .frames
-                    .iter()
-                    .map(|path| asset_server.load(path))
-                    .collect();
-                animation_with_handles
-            })
-            .collect();
+        let animations_with_handles: AnimationsWithHandles<T> =
+            animations_with_paths
+                .animations
+                .iter()
+                .map(|animation| {
+                    let mut animation_with_handles =
+                        AnimationWithHandles::<T>::from(animation);
+                    animation_with_handles.frames = animation
+                        .frames
+                        .iter()
+                        .map(|path| asset_server.load(path))
+                        .collect();
+                    animation_with_handles
+                })
+                .collect();
 
         *animations_with_handles_option = Some(animations_with_handles);
     }

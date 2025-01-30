@@ -27,6 +27,11 @@ pub struct VacuumSpell {
     pub eat_range: f32,
 }
 
+pub fn check_valid_caster() {} //TODO: Implement
+pub fn check_valid_target() {} //TODO: Implement
+pub fn apply_pull() {} //TODO: Implement
+pub fn apply_eat() {} //TODO: Implement
+
 pub fn cast_vacuum(
     mut commands: Commands,
     spell: Query<(&VacuumSpell, &ActionData)>,
@@ -102,8 +107,7 @@ pub fn cast_vacuum(
                 value: CantMove,
                 time_left: 0.5,
             });
-            //1. if the unit is close enough to the caster,
-            //   add it to the caster's inventory
+
             if distance < spell.eat_range {
                 println!("adding_to_inv");
                 commands.entity(entity).insert(AddToInventory {

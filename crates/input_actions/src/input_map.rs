@@ -1,14 +1,14 @@
 use bevy::{prelude::*, utils::HashMap};
 
-use crate::{action::Action, input_types::InputType};
+use crate::{action::InputAction, input_types::InputType};
 
 #[derive(Default, Resource)]
 pub struct InputMap {
-    pub map: HashMap<InputType, Action>,
+    pub map: HashMap<InputType, InputAction>,
 }
 
 impl InputMap {
-    pub fn bind(&mut self, input: InputType, action: Action) {
+    pub fn bind(&mut self, input: InputType, action: InputAction) {
         self.map.insert(input, action);
     }
 
@@ -16,11 +16,11 @@ impl InputMap {
         self.map.remove(&input);
     }
 
-    pub fn get(&self, input: InputType) -> Option<&Action> {
+    pub fn get(&self, input: InputType) -> Option<&InputAction> {
         self.map.get(&input)
     }
 
-    pub fn get_mut(&mut self, input: InputType) -> Option<&mut Action> {
+    pub fn get_mut(&mut self, input: InputType) -> Option<&mut InputAction> {
         self.map.get_mut(&input)
     }
 
@@ -30,11 +30,11 @@ impl InputMap {
     pub fn wasd() -> Self {
         InputMap {
             map: HashMap::from([
-                (KeyCode::KeyW.into(), Action::MoveForward),
-                (KeyCode::KeyA.into(), Action::MoveLeft),
-                (KeyCode::KeyS.into(), Action::MoveBack),
-                (KeyCode::KeyD.into(), Action::MoveRight),
-                (MouseButton::Right.into(), Action::Collect),
+                (KeyCode::KeyW.into(), InputAction::MoveForward),
+                (KeyCode::KeyA.into(), InputAction::MoveLeft),
+                (KeyCode::KeyS.into(), InputAction::MoveBack),
+                (KeyCode::KeyD.into(), InputAction::MoveRight),
+                (MouseButton::Right.into(), InputAction::Collect),
             ]),
         }
     }
@@ -43,7 +43,7 @@ pub fn remap_input(
     input_map: Res<InputMap>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
     mouse_input: Res<ButtonInput<MouseButton>>,
-    mut action_input: ResMut<ButtonInput<Action>>,
+    mut action_input: ResMut<ButtonInput<InputAction>>,
 ) {
     for (input, action) in input_map.map.iter() {
         match input {

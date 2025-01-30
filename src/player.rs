@@ -7,14 +7,11 @@ use camera::camera::{spawn_camera_to_follow, MainCamera};
 use combat::inventory::Inventory;
 use combat::spells::spell::{ActionBundle, ActionData};
 use combat::spells::vacuum::VacuumSpell;
-use combat::teams::{Team, TEAM_PLAYER};
+use combat::teams::TEAM_PLAYER;
 use input_actions::{
-    action::Action, input_map::InputMap, plugin::InputActionsPlugin,
+    action::InputAction, input_map::InputMap, plugin::InputActionsPlugin,
 };
-use movement::collide_and_slide::CollideAndSlide;
-use movement::kinematic_character_controller::{
-    KinematicCharacterController, KinematicCharacterControllerBundle,
-};
+use movement::kinematic_character_controller::KinematicCharacterControllerBundle;
 use movement::movement::{
     ApplyGravity, CursorPos, GlueToGround, Move, MoveInput,
 };
@@ -97,7 +94,7 @@ fn spawn_player(
 
 pub fn move_player(
     mut commands: Commands,
-    action_input: Res<ButtonInput<Action>>,
+    action_input: Res<ButtonInput<InputAction>>,
     player_query: Query<(Entity), With<Player>>,
     camera_query: Query<(&Transform, &Camera)>,
 ) {
@@ -108,16 +105,16 @@ pub fn move_player(
         }
     }
     let mut mv = Vec3::ZERO;
-    if action_input.pressed(Action::MoveForward) {
+    if action_input.pressed(InputAction::MoveForward) {
         mv.z += 1.0;
     }
-    if action_input.pressed(Action::MoveBack) {
+    if action_input.pressed(InputAction::MoveBack) {
         mv.z -= 1.0;
     }
-    if action_input.pressed(Action::MoveLeft) {
+    if action_input.pressed(InputAction::MoveLeft) {
         mv.x -= 1.0;
     }
-    if action_input.pressed(Action::MoveRight) {
+    if action_input.pressed(InputAction::MoveRight) {
         mv.x += 1.0;
     }
     for (entity) in player_query.iter() {
@@ -185,7 +182,7 @@ pub fn update_cursor_pos(
 
 pub fn collect_units(
     mut commands: Commands,
-    action_input: Res<ButtonInput<Action>>,
+    action_input: Res<ButtonInput<InputAction>>,
     player_query: Query<(Entity), With<Player>>,
     vacuum_query: Query<(Entity, &ActionData), With<VacuumSpell>>,
 ) {
@@ -199,7 +196,7 @@ pub fn collect_units(
             vacuum_exists = true;
         }
     }
-    if action_input.pressed(Action::Collect) && !vacuum_exists {
+    if action_input.pressed(InputAction::Collect) && !vacuum_exists {
         commands.spawn(ActionBundle::vacuum_spell(
             VacuumSpell {
                 range: 20.,
@@ -209,7 +206,7 @@ pub fn collect_units(
             },
             player,
         ));
-    } else if !action_input.pressed(Action::Collect) {
+    } else if !action_input.pressed(InputAction::Collect) {
         for (entity, _) in vacuum_query.iter() {
             commands.entity(entity).despawn();
         }

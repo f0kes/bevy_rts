@@ -24,7 +24,7 @@ impl<T> From<T> for Disabled<T> {
 // System to enable components
 pub fn enable_components<T: Component + Clone>(
     mut commands: Commands,
-    query: Query<(Entity, Option<&Disabled<T>>, &Enable<T>)>,
+    query: Query<(Entity, Option<&Disabled<T>>, &Enable<T>), Without<T>>,
 ) {
     for (entity, disabled, _) in query.iter() {
         let mut entity_commands = commands.entity(entity);
@@ -43,7 +43,7 @@ pub fn enable_components<T: Component + Clone>(
 // System to disable components
 pub fn disable_components<T: Component + Clone>(
     mut commands: Commands,
-    query: Query<(Entity, Option<&T>, &Disable<T>)>,
+    query: Query<(Entity, Option<&T>, &Disable<T>), With<T>>,
 ) {
     for (entity, component, _) in query.iter() {
         let mut entity_commands = commands.entity(entity);

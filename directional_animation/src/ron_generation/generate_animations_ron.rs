@@ -7,7 +7,11 @@ use super::*;
 //the rotation folder contains a bunch of png files. extract file paths, sort them with natural sort(alphabetically)
 // the final ron is list (character name, animation name, rotation, vec<frame path>)
 
-pub fn generate_animations_ron<T: AnimationTypes>(params: AnimationGenerationParameters<T>) {
+
+
+pub fn generate_animations_ron<T: AnimationTypes>(
+    params: AnimationGenerationParameters<T>,
+) {
     let root_path = Path::new(&params.root_folder);
 
     // Create a vector to store all animation data
@@ -27,9 +31,10 @@ pub fn generate_animations_ron<T: AnimationTypes>(params: AnimationGenerationPar
             "processing character {}",
             &char_entry.file_name().to_string_lossy().to_string()
         );
-        let char_name = match char_entry.file_name().to_string_lossy().to_string() {
-            name => params.character_aliases.get(&name).cloned(),
-        };
+        let char_name =
+            match char_entry.file_name().to_string_lossy().to_string() {
+                name => params.character_aliases.get(&name).cloned(),
+            };
         let char_name = match char_name {
             Some(name) => name,
             None => continue,
@@ -50,9 +55,10 @@ pub fn generate_animations_ron<T: AnimationTypes>(params: AnimationGenerationPar
                 "processing anim {}",
                 &char_entry.file_name().to_string_lossy().to_string()
             );
-            let anim_name = match anim_entry.file_name().to_string_lossy().to_string() {
-                name => params.animation_aliases.get(&name).cloned(),
-            };
+            let anim_name =
+                match anim_entry.file_name().to_string_lossy().to_string() {
+                    name => params.animation_aliases.get(&name).cloned(),
+                };
             let anim_name = match anim_name {
                 Some(name) => name,
                 None => continue,
@@ -73,9 +79,10 @@ pub fn generate_animations_ron<T: AnimationTypes>(params: AnimationGenerationPar
                     "processing rotation {}",
                     &char_entry.file_name().to_string_lossy().to_string()
                 );
-                let rot_name = match rot_entry.file_name().to_string_lossy().to_string() {
-                    name => params.rotation_aliases.get(&name).cloned(),
-                };
+                let rot_name =
+                    match rot_entry.file_name().to_string_lossy().to_string() {
+                        name => params.rotation_aliases.get(&name).cloned(),
+                    };
                 let rot_name = match rot_name {
                     Some(name) => name,
                     None => continue,
@@ -86,10 +93,19 @@ pub fn generate_animations_ron<T: AnimationTypes>(params: AnimationGenerationPar
                     .into_iter()
                     .flatten()
                     .flatten()
-                    .filter(|e| e.path().extension().and_then(|s| s.to_str()) == Some("png"))
+                    .filter(|e| {
+                        e.path().extension().and_then(|s| s.to_str())
+                            == Some("png")
+                    })
                     .map(|e| e.path().to_string_lossy().to_string())
                     .map(|e| e.replace(params.assets_folder.as_str(), ""))
-                    .map(|e| if e.starts_with('/') { e[1..].to_string() } else { e })
+                    .map(|e| {
+                        if e.starts_with('/') {
+                            e[1..].to_string()
+                        } else {
+                            e
+                        }
+                    })
                     .collect();
 
                 frames.sort();
@@ -108,11 +124,14 @@ pub fn generate_animations_ron<T: AnimationTypes>(params: AnimationGenerationPar
         let collection = AnimationsCollection { animations };
 
         // Serialize to RON format
-        let ron_string = ron::ser::to_string_pretty(&collection, ron::ser::PrettyConfig::default())
-            .unwrap_or_else(|e| {
-                println!("Error serializing to RON: {}", e);
-                String::new()
-            });
+        let ron_string = ron::ser::to_string_pretty(
+            &collection,
+            ron::ser::PrettyConfig::default(),
+        )
+        .unwrap_or_else(|e| {
+            println!("Error serializing to RON: {}", e);
+            String::new()
+        });
 
         // Write to file
         let ron_path = root_path.join(format!(

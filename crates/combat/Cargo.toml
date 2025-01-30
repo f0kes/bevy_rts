@@ -11,3 +11,5 @@ outline = { path = "../outline" }
 misc = { path = "../misc" }
 input_actions = { path = "../input_actions" }
 meta_components = { path = "../meta_components" }
+strum_macros = "0.26.3"
+strum = "0.26.3"

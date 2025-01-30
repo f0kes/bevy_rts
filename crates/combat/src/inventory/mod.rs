@@ -1,6 +1,6 @@
+pub mod plugin;
 pub mod remove_from_world;
 pub mod systems;
-pub mod plugin;
 
 use crate::units::unit::{get_unit_data, UnitName};
 use bevy::prelude::*;
@@ -10,6 +10,12 @@ pub struct Inventory {
     slots: Vec<ItemContainer>,
     size: u32,
 }
+
+#[derive(Component)]
+pub struct ChosenSlot {
+    pub index: u32,
+}
+
 impl Default for Inventory {
     fn default() -> Self {
         Self {
@@ -46,7 +52,7 @@ impl Inventory {
                 item_type: existing,
                 count: current,
                 max_count,
-                
+                held_entities,
             } = slot
             {
                 if *existing == item {
@@ -71,6 +77,7 @@ impl Inventory {
                     item_type: item,
                     count: add_amount,
                     max_count,
+                    held_entities: vec![],
                 };
                 remaining -= add_amount;
 
@@ -99,7 +106,7 @@ impl Inventory {
                 item_type: existing,
                 count: current,
                 max_count: _,
-                
+                held_entities,
             } = slot
             {
                 if *existing == item {
@@ -128,6 +135,7 @@ pub enum ItemContainer {
         item_type: Item,
         count: u32,
         max_count: u32,
+        held_entities: Vec<Entity>,
     },
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
