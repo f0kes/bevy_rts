@@ -27,10 +27,7 @@ pub struct VacuumSpell {
     pub eat_range: f32,
 }
 
-pub fn check_valid_caster() {} //TODO: Implement
-pub fn check_valid_target() {} //TODO: Implement
-pub fn apply_pull() {} //TODO: Implement
-pub fn apply_eat() {} //TODO: Implement
+
 
 pub fn cast_vacuum(
     mut commands: Commands,
@@ -64,6 +61,9 @@ pub fn cast_vacuum(
         else {
             continue;
         };
+        if caster_inventory.is_full() {
+            continue;
+        }
 
         let distances = get_nearby_unit_entities_and_positions(
             spatial_hashmap.as_ref(),
@@ -109,13 +109,13 @@ pub fn cast_vacuum(
             });
 
             if distance < spell.eat_range {
-                println!("adding_to_inv");
+                //println!("adding_to_inv");
                 commands.entity(entity).insert(AddToInventory {
                     target_inventory: caster,
                     item: Item::Unit {
                         name: unit.unit_name,
                     },
-                    count: 1,
+                    
                 });
             };
         }

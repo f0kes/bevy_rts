@@ -2,10 +2,14 @@ use avian3d::prelude::*;
 
 use bevy::prelude::*;
 
+use bevy::utils::hashbrown::HashSet;
+use bevy::utils::HashMap;
 use bevy::window::PrimaryWindow;
 use camera::camera::{spawn_camera_to_follow, MainCamera};
-use combat::inventory::Inventory;
-use combat::spells::spell::{ActionBundle, ActionData};
+use combat::inventory::{ChosenSlot, Inventory};
+use combat::spells::continuos_actions::{ActionMapping, ActiveActions};
+use combat::spells::spell::{Action, ActionBundle, ActionData};
+use combat::spells::summon::SummonSpell;
 use combat::spells::vacuum::VacuumSpell;
 use combat::teams::TEAM_PLAYER;
 use input_actions::{
@@ -49,7 +53,8 @@ impl Plugin for PlayerPlugin {
         }));
         app.add_systems(Update, move_player);
         app.add_systems(Update, update_cursor_pos);
-        app.add_systems(Update, collect_units);
+        //app.add_systems(Update, collect_units);
+        app.add_systems(Update, update_active_actions_on_player);
     }
 }
 
@@ -85,6 +90,9 @@ fn spawn_player(
             Inventory::new(10000),
             TEAM_PLAYER,
             ApplyGravity,
+            ActiveActions::default(),
+            default_action_mapping(),
+            ChosenSlot { index: 0 },
         ))
         .id();
     let (mut commands, _rig_id, camera_id) =
@@ -179,11 +187,45 @@ pub fn update_cursor_pos(
         println!("Update Cursor: No ray direction");
     }
 }
+pub fn update_active_actions_on_player(
+    action_input: Res<ButtonInput<InputAction>>,
+    mut player_query: Query<&mut ActiveActions, With<Player>>,
+) {
+    for mut active_actions in player_query.iter_mut() {
+        active_actions.0.clear();
+    }
+    action_input.get_pressed().for_each(|action| {
+        for mut active_actions in player_query.iter_mut() {
+            active_actions.0.insert(*action);
+        }
+    });
+}
+pub fn default_action_mapping() -> ActionMapping {
+    let mut action_mapping = ActionMapping(HashMap::new());
+    action_mapping.0.insert(
+        InputAction::Collect,
+        Action::VacuumSpell(VacuumSpell {
+            range: 20.,
+            width: 2.,
+            pull_force: 2.,
+            eat_range: 1.,
+        }),
+    );
+    action_mapping.0.insert(
+        InputAction::UseItem,
+        Action::SummonSpell(SummonSpell {
+            summon_interval: 0.2,
+            last_summon_time: 0.,
+            summon_velocity: 10.,
+        }),
+    );
+    action_mapping
+}
 
-pub fn collect_units(
+/* pub fn collect_units(
     mut commands: Commands,
     action_input: Res<ButtonInput<InputAction>>,
-    player_query: Query<(Entity), With<Player>>,
+    player_query: Query<Entity, With<Player>>,
     vacuum_query: Query<(Entity, &ActionData), With<VacuumSpell>>,
 ) {
     let player = match player_query.get_single() {
@@ -211,7 +253,39 @@ pub fn collect_units(
             commands.entity(entity).despawn();
         }
     }
-}
+} */
+
+/* pub fn spawn_units(
+    mut commands: Commands,
+    action_input: Res<ButtonInput<InputAction>>,
+    player_query: Query<Entity, With<Player>>,
+    vacuum_query: Query<(Entity, &ActionData), With<VacuumSpell>>,
+) {
+    let player = match player_query.get_single() {
+        Ok(player) => player,
+        Err(_) => return,
+    };
+    let mut vacuum_exists = false;
+    for (_, action_data) in vacuum_query.iter() {
+        if action_data.actor == player {
+            vacuum_exists = true;
+        }
+    }
+    if action_input.pressed(InputAction::Spawn) && !vacuum_exists {
+        commands.spawn(ActionBundle::summon_spell(
+            SummonSpell {
+                summon_interval: 1.,
+                last_summon_time: 0.,
+                summon_velocity: 10.,
+            },
+            player,
+        ));
+    } else if !action_input.pressed(InputAction::Spawn) {
+        for (entity, _) in vacuum_query.iter() {
+            commands.entity(entity).despawn();
+        }
+    }
+} */
 /* #[derive(Component)]
 pub struct CursorFollower;
 

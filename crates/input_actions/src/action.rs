@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 #[derive(Component, Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum InputAction {
-    Spawn,
+    UseItem,
     Collect,
     MoveForward,
     MoveBack,

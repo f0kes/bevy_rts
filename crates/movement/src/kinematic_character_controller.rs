@@ -1,4 +1,3 @@
-use avian3d::prelude::Collider;
 use bevy::prelude::*;
 
 use crate::collide_and_slide::CollideAndSlide;

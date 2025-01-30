@@ -8,7 +8,6 @@ use bevy::prelude::*;
 #[derive(Component)]
 pub struct Inventory {
     slots: Vec<ItemContainer>,
-    size: u32,
 }
 
 #[derive(Component)]
@@ -20,14 +19,12 @@ impl Default for Inventory {
     fn default() -> Self {
         Self {
             slots: vec![ItemContainer::Empty; 10],
-            size: 10,
         }
     }
 }
 #[derive(Debug)]
 pub enum AddResult {
     Success,
-    Partial { leftovers: u32 },
     Failed { reason: AddError },
 }
 
@@ -40,92 +37,101 @@ impl Inventory {
     pub fn new(size: u32) -> Self {
         Self {
             slots: vec![ItemContainer::Empty; size as usize],
-            size,
         }
     }
-    pub fn try_put(&mut self, item: Item, count: u32) -> AddResult {
-        let mut remaining = count;
-
-        // First pass: fill existing stacks
-        for slot in &mut self.slots {
-            if let ItemContainer::Occupied {
-                item_type: existing,
-                count: current,
-                max_count,
-                held_entities,
-            } = slot
-            {
-                if *existing == item {
-                    let space = *max_count - *current;
-                    let add_amount = remaining.min(space);
-                    *current += add_amount;
-                    remaining -= add_amount;
-
-                    if remaining == 0 {
-                        return AddResult::Success;
-                    }
-                }
-            }
-        }
-
-        // Second pass: fill empty slots
-        for slot in &mut self.slots {
-            if let ItemContainer::Empty = slot {
-                let max_count = item.get_stack_size();
-                let add_amount = remaining.min(max_count);
-                *slot = ItemContainer::Occupied {
-                    item_type: item,
-                    count: add_amount,
-                    max_count,
-                    held_entities: vec![],
-                };
-                remaining -= add_amount;
-
-                if remaining == 0 {
+    pub fn try_put(&mut self, item: Item, entity: Entity) -> AddResult {
+        let stack_size = item.get_stack_size();
+        for (_index, slot) in self.slots.iter_mut().enumerate() {
+            match slot {
+                ItemContainer::Empty => {
+                    *slot = ItemContainer::Occupied {
+                        item_type: item,
+                        count: 1,
+                        max_count: stack_size,
+                        held_entities: vec![entity],
+                    };
                     return AddResult::Success;
                 }
-            }
-        }
-
-        // If we still have remaining items, return appropriate result
-        if remaining < count {
-            AddResult::Partial {
-                leftovers: remaining,
-            }
-        } else {
-            AddResult::Failed {
-                reason: AddError::InventoryFull,
-            }
-        }
-    }
-    pub fn try_take(&mut self, item: Item, count: u32) -> u32 {
-        let mut remaining = count;
-
-        for slot in &mut self.slots {
-            if let ItemContainer::Occupied {
-                item_type: existing,
-                count: current,
-                max_count: _,
-                held_entities,
-            } = slot
-            {
-                if *existing == item {
-                    let take_amount = remaining.min(*current);
-                    *current -= take_amount;
-                    remaining -= take_amount;
-
-                    if *current == 0 {
-                        *slot = ItemContainer::Empty;
-                    }
-
-                    if remaining == 0 {
-                        return count;
+                ItemContainer::Occupied {
+                    item_type,
+                    count,
+                    max_count,
+                    held_entities,
+                } => {
+                    if item == *item_type {
+                        if *count < *max_count {
+                            *count += 1;
+                            held_entities.push(entity);
+                            return AddResult::Success;
+                        }
                     }
                 }
             }
         }
-
-        count - remaining
+        AddResult::Failed {
+            reason: AddError::InventoryFull,
+        }
+    }
+    pub fn try_take_with_item(&mut self, item: Item) -> Option<Entity> {
+        for (_index, slot) in self.slots.iter_mut().enumerate() {
+            match slot {
+                ItemContainer::Empty => {}
+                ItemContainer::Occupied {
+                    item_type,
+                    count,
+                    max_count: _,
+                    held_entities,
+                } => {
+                    if item == *item_type {
+                        if *count > 0 {
+                            *count -= 1;
+                            return held_entities.pop();
+                        }
+                    }
+                }
+            }
+        }
+        None
+    }
+    pub fn try_take_with_slot(
+        &mut self,
+        slot_index: u32,
+    ) -> Option<(Item, Entity)> {
+        if let Some(slot) = self.slots.get_mut(slot_index as usize) {
+            match slot {
+                ItemContainer::Empty => None,
+                ItemContainer::Occupied {
+                    item_type,
+                    count,
+                    max_count: _,
+                    held_entities,
+                } => {
+                    if *count > 0 {
+                        *count -= 1;
+                        if let Some(next_entity) = held_entities.pop() {
+                            return Some((*item_type, next_entity));
+                        }
+                    }
+                    None
+                }
+            }
+        } else {
+            None
+        }
+    }
+    pub fn is_full(&self) -> bool {
+        self.slots.iter().all(|slot| match slot {
+            ItemContainer::Empty => false,
+            ItemContainer::Occupied {
+                count, max_count, ..
+            } => *count >= *max_count,
+        })
+    }
+    pub fn is_empty(&self) -> bool {
+        self.slots.iter().all(|slot| match slot {
+            ItemContainer::Empty => true,
+            ItemContainer::Occupied { count, .. } => *count == 0,
+        })
     }
 }
 #[derive(Debug, Clone)]

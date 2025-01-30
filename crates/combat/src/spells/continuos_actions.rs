@@ -9,12 +9,12 @@ use input_actions::action::InputAction;
 use super::spell::{
     Action, ActionBundle, ActionData, ActionDiscriminants, ActionType,
 };
-#[derive(Component)]
+#[derive(Component,Default)]
 pub struct ActiveActions(pub HashSet<InputAction>);
 
 #[derive(Component)]
 pub struct ActionMapping(pub HashMap<InputAction, Action>);
-pub fn process_continuous_actions<T: Component>(
+pub fn process_continuous_actions(
     mut commands: Commands,
     caster_query: Query<(Entity, &ActiveActions, &ActionMapping)>,
     game_action_query: Query<(Entity, &ActionData, &Action)>,
@@ -56,3 +56,37 @@ pub fn process_continuous_actions<T: Component>(
         }
     }
 }
+
+/* pub fn process_continuos<T: Component>(
+    mut commands: Commands,
+    input: Res<ButtonInput<InputAction>>,
+    actor_query: Query<(Entity,)>,
+    action_query: Query<(Entity, &ActionData), With<T>>,
+) {
+    let (actor_entity,) = match actor_query.get_single() {
+        Ok(actor_entity) => actor_entity,
+        Err(_) => return,
+    };
+    let mut action_exists = false;
+    for (_, action_data) in action_query.iter() {
+        if action_data.actor == actor_entity {
+            action_exists = true;
+        }
+    }
+    
+    if input.pressed(InputAction::Collect) && !action_exists {
+        commands.spawn(ActionBundle::vacuum_spell(
+            VacuumSpell {
+                range: 20.,
+                width: 2.,
+                pull_force: 2.,
+                eat_range: 1.,
+            },
+            player,
+        ));
+    } else if !input.pressed(InputAction::Collect) {
+        for (entity, _) in action_query.iter() {
+            commands.entity(entity).despawn();
+        }
+    }
+} */

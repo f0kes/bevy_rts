@@ -1,3 +1,4 @@
+use bevy::ecs::world::Command;
 use bevy::input::mouse::MouseWheel;
 use bevy::prelude::*;
 use bevy::render::camera::ScalingMode;
@@ -124,6 +125,8 @@ pub fn get_default_perspective_projection() -> Projection {
     }
 } */
 
+
+
 pub fn update_camera_input(
     //TODO: this should be a system that updates the camera input component, not a component itself
     mut camera_query: Query<(&mut CameraInput, Entity, &mut Transform)>,
@@ -193,7 +196,7 @@ pub fn spawn_camera_to_follow<'a, 'b>(
     entity_to_follow: Entity,
     mut commands: Commands<'a, 'b>,
 ) -> (Commands<'a, 'b>, Entity, Entity) {
-    println!("Spawning camera");
+    //println!("Spawning camera");
     let camera_rig = commands
         .spawn(TransformBundle::from_transform(
             Transform::from_translation(Vec3::new(0.0, 5.0, 12.0))

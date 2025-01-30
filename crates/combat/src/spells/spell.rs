@@ -3,6 +3,8 @@ use strum_macros::EnumDiscriminants;
 
 use crate::spells::vacuum::VacuumSpell;
 
+use super::summon::SummonSpell;
+
 #[derive(Component)]
 pub struct ActionData {
     pub actor: Entity,
@@ -19,6 +21,7 @@ pub enum ActionType {
 pub enum Action {
     None,
     VacuumSpell(VacuumSpell),
+    SummonSpell(SummonSpell),
 }
 impl PartialEq for Action {
     fn eq(&self, other: &Self) -> bool {
@@ -47,6 +50,10 @@ impl ActionBundle {
         Self::new(Action::VacuumSpell(spell), actor)
             .with_type(ActionType::Continuous)
     }
+    pub fn summon_spell(spell: SummonSpell, actor: Entity) -> Self {
+        Self::new(Action::SummonSpell(spell), actor)
+            .with_type(ActionType::Continuous)
+    }
     pub fn with_type(mut self, action_type: ActionType) -> Self {
         self.data.action_type = action_type;
         self
@@ -55,6 +62,7 @@ impl ActionBundle {
         match action {
             Action::None => Self::new(action, actor),
             Action::VacuumSpell(spell) => Self::vacuum_spell(spell, actor),
+            Action::SummonSpell(summon_spell) => Self::summon_spell(summon_spell, actor),
         }
     }
 }
@@ -64,6 +72,9 @@ pub fn add_spell_component(
 ) {
     for (entity, action) in query.iter() {
         if let Action::VacuumSpell(spell) = action {
+            commands.entity(entity).insert(*spell);
+        }
+        if let Action::SummonSpell(spell) = action {
             commands.entity(entity).insert(*spell);
         }
     }

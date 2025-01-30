@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+/* use bevy::prelude::*;
 use misc::disabled::{ComponentTogglePlugin, ToggleCommands};
 
 #[derive(Component)]
@@ -36,5 +36,21 @@ pub fn on_exit_world(
                 .disable::<Transform>()
                 .disable::<GlobalTransform>();
         }
+    }
+}
+ */
+
+use meta_macro_derive::meta_component;
+
+#[meta_component(InWorld)]
+pub struct InWorldBlueprint {
+    pub handle: Handle<Scene>,
+    pub transform: Transform,
+    pub global_transform: GlobalTransform,
+}
+
+pub fn query_in_world(mut commands: Commands, query: Query<InWorldQuery>) {
+    for blueprint in query.iter() {
+        blueprint.global_transform;
     }
 }

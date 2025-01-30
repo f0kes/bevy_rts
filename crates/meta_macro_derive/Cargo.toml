@@ -1,0 +1,16 @@
+[package]
+name = "meta_macro_derive"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+proc-macro=true
+
+
+[dependencies]
+misc = { path = "../misc" }
+bevy = { workspace = true }
+paste = "1.0"
+syn = { version = "2.0.96", features = ["full"] }
+quote = "1.0.38"
+proc-macro2 = "1.0.93"

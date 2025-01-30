@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 
 use combat::units::unit::{get_unit_data, Unit, UnitName};
+use meta_components::in_world::InWorld;
 use steering::{
     context_map::ContextMap,
     plugin::SteeringBehavioursAppExt,
@@ -31,6 +32,7 @@ pub fn spawn_a_lot_of_dudliqs(mut commands: Commands) {
         commands.spawn((
             get_unit_data(UnitName::Dudliq),
             Transform::from_translation(Vec3::new(x, 0.0, z)),
+    
         ));
     }
 }

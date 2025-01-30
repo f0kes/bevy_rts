@@ -24,18 +24,28 @@ impl<T> From<T> for Disabled<T> {
 // System to enable components
 pub fn enable_components<T: Component + Clone>(
     mut commands: Commands,
-    query: Query<(Entity, Option<&Disabled<T>>, &Enable<T>), Without<T>>,
+    query: Query<(Entity, Option<&Disabled<T>>, &Enable<T>)>,
 ) {
     for (entity, disabled, _) in query.iter() {
         let mut entity_commands = commands.entity(entity);
         // Always remove Enable marker
         entity_commands.remove::<Enable<T>>();
+       /*  println!(
+            "removing enable tag on entity {:?} with component type {:?}",
+            entity,
+            std::any::type_name::<T>()
+        ); */
 
         // Only process if we have a disabled component
         if let Some(disabled) = disabled {
             entity_commands
                 .insert(disabled.data.clone())
                 .remove::<Disabled<T>>();
+           /*  println!(
+                "Enabling entity {:?} with component type {:?}",
+                entity,
+                std::any::type_name::<T>()
+            ); */
         }
     }
 }
@@ -48,14 +58,22 @@ pub fn disable_components<T: Component + Clone>(
     for (entity, component, _) in query.iter() {
         let mut entity_commands = commands.entity(entity);
         // Always remove Disable marker
+        //println!("Disabling entity {:?} with component type {:?}", entity, std::any::type_name::<T>());
         entity_commands.remove::<Disable<T>>();
-
         // Only process if we have the component
         if let Some(component) = component {
             entity_commands
                 .insert(Disabled::from(component.clone()))
                 .remove::<T>();
         }
+    }
+}
+pub fn remove_disabled_on_added<T: Component>(
+    mut commands: Commands,
+    query: Query<Entity, (Added<T>, With<Disabled<T>>)>,
+) {
+    for entity in query.iter() {
+        commands.entity(entity).remove::<Disabled<T>>();
     }
 }
 
@@ -69,8 +87,8 @@ pub fn toggle_components<T: Component + Clone>(
             (Some(component), None) => {
                 commands
                     .entity(entity)
-                    .insert(Disabled::from(component.clone()))
-                    .remove::<T>();
+                    .remove::<T>()
+                    .insert(Disabled::from(component.clone()));
             }
             (None, Some(disabled)) => {
                 commands
@@ -81,6 +99,15 @@ pub fn toggle_components<T: Component + Clone>(
             _ => {} // Should not happen
         }
         commands.entity(entity).remove::<Toggle<T>>();
+    }
+}
+pub fn overwrite_disabled<T: Component>(
+    mut commands: Commands,
+    query: Query<(Entity, &T), With<Disabled<T>>>,
+) {
+    for (entity, _) in query.iter() {
+        //println!("Overwriting disabled component for entity {:?} with component type {:?}", entity, std::any::type_name::<T>());
+        commands.entity(entity).remove::<Disabled<T>>();
     }
 }
 
@@ -101,6 +128,7 @@ impl<T: Component + Clone> Plugin for ComponentTogglePlugin<T> {
                 enable_components::<T>,
                 disable_components::<T>,
                 toggle_components::<T>,
+                overwrite_disabled::<T>,
             ),
         );
     }
@@ -117,55 +145,14 @@ impl<'w> ToggleCommands for EntityCommands<'w> {
     }
 
     fn enable<T: Component>(&mut self) -> &mut Self {
+        /* println!(
+            "inserting enable tag with component type {:?}",
+            std::any::type_name::<T>()
+        ); */
         self.insert(Enable::<T>(PhantomData))
     }
 
     fn disable<T: Component>(&mut self) -> &mut Self {
         self.insert(Disable::<T>(PhantomData))
-    }
-}
-
-// Example usage
-#[derive(Component, Clone, Debug)]
-struct Player {
-    speed: f32,
-}
-
-fn setup(mut commands: Commands) {
-    commands.spawn((Player { speed: 5.0 }, Transform::default()));
-}
-
-fn input_system(
-    mut commands: Commands,
-    query: Query<Entity, Or<(With<Player>, With<Disabled<Player>>)>>,
-    keyboard: Res<ButtonInput<KeyCode>>,
-) {
-    for entity in query.iter() {
-        if keyboard.just_pressed(KeyCode::Space) {
-            commands.entity(entity).toggle::<Player>();
-        }
-    }
-}
-
-pub fn main() {
-    App::new()
-        .add_plugins(DefaultPlugins)
-        .add_plugins(ComponentTogglePlugin::<Player>::default())
-        .add_plugins(ComponentTogglePlugin::<Transform>::default())
-        .add_systems(Startup, setup)
-        .add_systems(Update, input_system)
-        .run();
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_disabled_from() {
-        let disabled = Disabled { data: 0 };
-        let disabled_2 = Disabled::from(0);
-        assert_eq!(disabled.data, 0);
-        assert_eq!(disabled, disabled_2);
     }
 }

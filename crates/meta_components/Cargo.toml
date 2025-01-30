@@ -3,6 +3,9 @@ name = "meta_components"
 version = "0.1.0"
 edition = "2021"
 
+
 [dependencies]
 misc = { path = "../misc" }
 bevy = { workspace = true }
+paste = "1.0"
+meta_macro_derive = {path = "../meta_macro_derive"}

@@ -56,7 +56,7 @@ pub fn rotate_in_direction_of_movement(
         let vel_per_sec = velocity.0 / time.delta_seconds();
         if vel_per_sec.length_squared() < rotate.min_speed_squared {
             continue;
-        }
+        } 
 
         let current_angle = f32::atan2(vel_per_sec.x, vel_per_sec.z)
             - std::f32::consts::FRAC_PI_2;

@@ -14,7 +14,7 @@ use bevy::window::{PresentMode, PrimaryWindow};
 use bevy::winit::WinitWindows;
 use bevy::DefaultPlugins;
 
-use bevy_editor_pls::EditorPlugin;
+use bevy_editor_pls::{AddEditorWindow, EditorPlugin};
 use bevy_game::dudliq::{spawn_a_lot_of_dudliqs, DudliqPlugin};
 use bevy_game::player::PlayerPlugin;
 
@@ -22,12 +22,12 @@ use camera::plugin::SmoothCameraPlugin;
 use combat::inventory::plugin::InventoryPlugin;
 use combat::spells::plugin::SpellsPlugin;
 use combat::units::plugin::UnitsPlugin;
+use editor_ext::{self, ComponentSearchWindow};
 use meta_components::plugin::MetaComponentsPlugin;
 use misc::disabled::ComponentTogglePlugin;
 use outline::clash_grass::{CheckerGrassExtension, CheckerGrassMaterialConfig};
 use outline::plugin::MyMaterialsPlugin;
 use outline::toon_shader::{ToonShaderMaterial, ToonShaderSun};
-
 use steering::plugin::{SpatialStructure, SteeringPlugin};
 use world_gen::terrain::{Terrain, TerrainLike, TerrainPlaneOptions};
 
@@ -72,6 +72,7 @@ fn main() {
 
     app.add_plugins(DefaultPlugins.set(window_plugin).set(asset_plugin));
     app.add_plugins(EditorPlugin::default());
+    app.add_editor_window::<ComponentSearchWindow>();
 
     app.register_type::<Dude>();
 
@@ -106,7 +107,7 @@ fn main() {
     app.add_plugins(SpellsPlugin);
     app.add_plugins(InventoryPlugin);
     app.add_plugins(MetaComponentsPlugin);
-    
+
     app.run();
 }
 

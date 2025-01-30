@@ -35,6 +35,7 @@ impl InputMap {
                 (KeyCode::KeyS.into(), InputAction::MoveBack),
                 (KeyCode::KeyD.into(), InputAction::MoveRight),
                 (MouseButton::Right.into(), InputAction::Collect),
+                (MouseButton::Left.into(), InputAction::UseItem),
             ]),
         }
     }
