@@ -18,6 +18,11 @@ use bevy_editor_pls::{AddEditorWindow, EditorPlugin};
 use bevy_game::dudliq::{spawn_a_lot_of_dudliqs, DudliqPlugin};
 use bevy_game::player::PlayerPlugin;
 
+use bevy_hanabi::HanabiPlugin;
+use bevy_mod_outline::{
+    AsyncSceneInheritOutlinePlugin, AutoGenerateOutlineNormalsPlugin,
+    OutlinePlugin,
+};
 use camera::plugin::SmoothCameraPlugin;
 use combat::inventory::plugin::InventoryPlugin;
 use combat::spells::plugin::SpellsPlugin;
@@ -28,6 +33,7 @@ use misc::disabled::ComponentTogglePlugin;
 use outline::clash_grass::{CheckerGrassExtension, CheckerGrassMaterialConfig};
 use outline::plugin::MyMaterialsPlugin;
 use outline::toon_shader::{ToonShaderMaterial, ToonShaderSun};
+use particles::plugin::ParticlesPlugin;
 use steering::plugin::{SpatialStructure, SteeringPlugin};
 use world_gen::terrain::{Terrain, TerrainLike, TerrainPlaneOptions};
 
@@ -107,6 +113,12 @@ fn main() {
     app.add_plugins(SpellsPlugin);
     app.add_plugins(InventoryPlugin);
     app.add_plugins(MetaComponentsPlugin);
+
+    app.add_plugins(OutlinePlugin);
+    app.add_plugins(AutoGenerateOutlineNormalsPlugin);
+    app.add_plugins(AsyncSceneInheritOutlinePlugin);
+    app.add_plugins(HanabiPlugin);
+    app.add_plugins(ParticlesPlugin);
 
     app.run();
 }

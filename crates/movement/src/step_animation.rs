@@ -1,4 +1,3 @@
-use avian3d::prelude::*;
 use bevy::prelude::*;
 
 use crate::kinematic_character_controller::MoveVelocity;

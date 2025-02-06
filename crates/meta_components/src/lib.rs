@@ -4,5 +4,6 @@ pub mod temporal;
 pub mod linked;
 pub mod meta_macro;
 pub mod blueprint_macro;
+pub mod propagating;
 
 

@@ -202,7 +202,7 @@ pub fn update_active_actions_on_player(
 }
 pub fn default_action_mapping() -> ActionMapping {
     let mut action_mapping = ActionMapping(HashMap::new());
-    action_mapping.0.insert(
+    /* action_mapping.0.insert(
         InputAction::Collect,
         Action::VacuumSpell(VacuumSpell {
             range: 20.,
@@ -218,7 +218,7 @@ pub fn default_action_mapping() -> ActionMapping {
             last_summon_time: 0.,
             summon_velocity: 10.,
         }),
-    );
+    ); */
     action_mapping
 }
 

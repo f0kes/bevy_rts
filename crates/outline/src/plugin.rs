@@ -1,11 +1,8 @@
 use crate::{
-    clash_grass::CheckerGrassMaterialPlugin,
-    material_replace::{
+    change_color::RecolorPlugin, clash_grass::CheckerGrassMaterialPlugin, material_replace::{
         replace_standart_materials, replace_standart_materials_keep_texture,
         TexturableMaterial,
-    },
-    shader_material::OutlineMaterial,
-    toon_shader::{update_toon_shader, ToonShaderMaterial},
+    }, shader_material::OutlineMaterial, toon_shader::{update_toon_shader, ToonShaderMaterial}
 };
 use bevy::prelude::*;
 use std::hash::Hash;
@@ -16,6 +13,7 @@ impl Plugin for MyMaterialsPlugin {
         app.add_plugins(TexturableMaterialPlugin::<OutlineMaterial>::default());
         app.add_plugins(ToonShaderPlugin);
         app.add_plugins(CheckerGrassMaterialPlugin);
+        app.add_plugins(RecolorPlugin);
     }
 }
 

@@ -43,6 +43,7 @@ pub fn on_exit_world(
 use meta_macro_derive::meta_component;
 
 #[meta_component(InWorld)]
+#[derive(Default)]
 pub struct InWorldBlueprint {
     pub handle: Handle<Scene>,
     pub transform: Transform,

@@ -47,6 +47,7 @@ pub fn meta_component(attr: TokenStream, input: TokenStream) -> TokenStream {
                 )*
 
                 app.add_systems(Update, (
+                    sync_components::<#meta_name>,
                     on_enter_system::<#meta_name>,
                     propagate_disabled::<#meta_name>,
                     remove_meta_component::<#meta_name>,
@@ -55,7 +56,28 @@ pub fn meta_component(attr: TokenStream, input: TokenStream) -> TokenStream {
             }
         }
     };
+    let sync_system = quote! {
+        fn sync_components<T: Component + Default>(
+            mut commands: Commands,
+            query: Query<(
+                Entity,
+                #(
+                    Option<&mut #field_types>,
+                )*
+            ), With<T>>,
+        ) {
+            for (entity, #(#field_names,)*) in query.iter() {
+                let blueprint = #blueprint_name::default();
+                let mut entity_commands = commands.entity(entity);
 
+                #(
+                    if #field_names.is_none() {
+                        entity_commands.insert(blueprint.#field_names.clone());
+                    }
+                )*
+            }
+        }
+    };
     // Generate systems
     let systems = quote! {
         fn on_enter_system<T: Component>(
@@ -136,8 +158,9 @@ pub fn meta_component(attr: TokenStream, input: TokenStream) -> TokenStream {
         #marker_component
         #plugin
         #systems
+        #sync_system
         #world_query
-        
+
     };
 
     expanded.into()

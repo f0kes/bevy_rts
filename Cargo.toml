@@ -20,8 +20,9 @@ members = [
     "crates/steering",
     "crates/editor_ext",
     "crates/world_gen",
+    "crates/particles",
     "directional_animation",
-    "mobile", "crates/meta_macro_derive",
+    "mobile", "crates/meta_macro_derive", "crates/particles",
 ]
 
 [dependencies]
@@ -48,13 +49,14 @@ bevy = { version = "0.14", default-features = false, features = [
     "tonemapping_luts",
     "smaa_luts",
     "default_font",
-    "webgl2",
+    "webgl2",   
     "sysinfo_plugin",
 ] }
-
+bevy_mod_outline = {version ="0.8.3"}
 bevy_kira_audio = { version = "0.20" }
 bevy_asset_loader = { version = "0.21" }
 rand = { version = "0.8.3" }
+bevy_hanabi = {version = "0.12.2"}
 webbrowser = { version = "1", features = ["hardened"] }
 
 # keep the following in sync with Bevy's dependencies
@@ -73,6 +75,7 @@ ownership = { path = "./crates/ownership" }
 camera = { path = "./crates/camera" }
 steering = { path = "./crates/steering" }
 combat = { path = "./crates/combat" }
+particles = {path = "./crates/particles"}
 meta_components = { path = "./crates/meta_components" }
 misc = { path = "./crates/misc" }
 editor_ext={path ="./crates/editor_ext"}
@@ -148,6 +151,7 @@ bevy_editor_pls = "0.9.0"
 serde = { version = "1.0.215", features = ["derive"] }
 avian3d = "0.1.2"
 bevy_spatial = { git = "https://github.com/VitalyArtemiev/bevy-spatial", branch = "within" }
+bevy_hanabi = {version = "0.12.2"}
 
 # keep the following in sync with Bevy's dependencies
 winit = { version = "0.30", default-features = false }
