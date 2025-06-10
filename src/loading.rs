@@ -1,40 +1,21 @@
-
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
-use bevy_kira_audio::AudioSource;
-use directional_animation::ron_generation::plugin::{AnimationLoadingState, LoadAnimationPlugin};
 
 use crate::GameState;
 
 pub struct LoadingPlugin;
-
-fn check_loading_complete(
-    animation_state: Res<State<AnimationLoadingState>>,
-    game_state: Res<State<GameState>>,
-    mut next_state: ResMut<NextState<GameState>>,
-) {
-    if animation_state.get() == &AnimationLoadingState::Complete
-        && game_state.get() == &GameState::Loaded
-    {
-        next_state.set(GameState::Menu);
-    }
-}
 
 /// This plugin loads all assets using [`AssetLoader`] from a third party bevy plugin
 /// Alternatively you can write the logic to load assets yourself
 /// If interested, take a look at <https://bevy-cheatbook.github.io/features/assets.html>
 impl Plugin for LoadingPlugin {
     fn build(&self, app: &mut App) {
+        app.init_state::<GameState>();
         app.add_loading_state(
             LoadingState::new(GameState::Loading)
                 .continue_to_state(GameState::Loaded)
                 .load_collection::<AudioAssets>()
-                .load_collection::<TextureAssets>(),
-        );
-        
-        app.add_systems(
-            Update,
-            check_loading_complete.run_if(in_state(GameState::Loaded)),
+                .load_collection::<TextureAssets>()
         );
     }
 }
@@ -54,4 +35,8 @@ pub struct TextureAssets {
     pub bevy: Handle<Image>,
     #[asset(path = "textures/github.png")]
     pub github: Handle<Image>,
+    #[asset(path = "textures/particle.png")]
+    pub particle: Handle<Image>,
+    #[asset(path = "textures/checker_normal.png")]
+    pub checker: Handle<Image>,
 }

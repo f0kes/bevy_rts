@@ -1,22 +1,25 @@
-use std::f32::consts;
-
-use avian3d::prelude::*;
 use bevy::prelude::*;
 
-use crate::{
-    kinematic_character_controller::MoveVelocity, movement::Acceleration,
-};
+use crate::movement::{Acceleration, MoveVelocity};
+
+#[derive(Reflect, PartialEq)]
+pub enum RotationMode {
+    Direct,
+    Average { time_window: f32 },
+}
 
 #[derive(Component, Reflect)]
 pub struct RotateInDirectionOfMovement {
-    previous_rot: Quat,
-    min_speed_squared: f32,
+    pub previous_rot: Quat,
+    pub min_speed_squared: f32,
+    pub rotation_mode: RotationMode,
 }
 impl Default for RotateInDirectionOfMovement {
     fn default() -> Self {
         Self {
             previous_rot: Quat::IDENTITY,
             min_speed_squared: 10.,
+            rotation_mode: RotationMode::Direct,
         }
     }
 }
@@ -41,33 +44,99 @@ impl Default for TiltInDirectionOfMovement {
     }
 }
 
+#[derive(Component, Reflect)]
+pub struct AverageVelOverTime {
+    pub time_window: f32,
+    pub average_speed: Vec3,
+}
+impl Default for AverageVelOverTime {
+    fn default() -> Self {
+        Self {
+            time_window: 1.0,
+            average_speed: Vec3::ZERO,
+        }
+    }
+}
+
 pub fn rotate_in_direction_of_movement(
+    time: Res<Time>,
     mut query: Query<(
         &mut RotateInDirectionOfMovement,
         &mut Transform,
-        &MoveVelocity,
+        Option<&MoveVelocity>,
+        Option<&AverageVelOverTime>,
     )>,
-    time: Res<Time>,
 ) {
-    for (mut rotate, mut transform, velocity) in query.iter_mut() {
-        if time.delta_seconds() <= 0.0 {
-            continue;
-        }
-        let vel_per_sec = velocity.0 / time.delta_seconds();
+    if time.delta_secs() <= 0.0 {
+        return;
+    }
+
+    for (mut rotate, mut transform, velocity, avg_velocity) in query.iter_mut() {
+        let vel_per_sec = match rotate.rotation_mode {
+            RotationMode::Direct => {
+                if let Some(velocity) = velocity {
+                    velocity.0 / time.delta_secs()
+                } else {
+                    continue;
+                }
+            },
+            RotationMode::Average { .. } => {
+                if let Some(avg_velocity) = avg_velocity {
+                    avg_velocity.average_speed / time.delta_secs()
+                } else {
+                    continue;
+                }
+            }
+        };
+
         if vel_per_sec.length_squared() < rotate.min_speed_squared {
             continue;
-        } 
+        }
 
         let current_angle = f32::atan2(vel_per_sec.x, vel_per_sec.z)
             - std::f32::consts::FRAC_PI_2;
-        let velocity_xz =
-            Vec3::new(vel_per_sec.x, vel_per_sec.y, vel_per_sec.z);
-        let local_forward_to_velocity =
-            Quat::from_rotation_arc(transform.forward().into(), velocity_xz);
+
         let rotation_delta = Quat::from_rotation_y(current_angle);
         transform.rotation =
             rotation_delta * rotate.previous_rot.inverse() * transform.rotation;
         rotate.previous_rot = rotation_delta;
+    }
+}
+
+pub fn update_average_velocity(
+    time: Res<Time>,
+    mut query: Query<(&mut AverageVelOverTime, &MoveVelocity)>,
+) {
+    let dt = time.delta_secs();
+    if dt <= 0.0 {
+        return;
+    }
+
+    for (mut avg_vel, velocity) in query.iter_mut() {
+        let decay_factor = dt / avg_vel.time_window;
+        let clamped_decay = decay_factor.clamp(0.0, 1.0);
+
+        avg_vel.average_speed =
+            avg_vel.average_speed.lerp(velocity.0, clamped_decay);
+    }
+}
+
+pub fn add_average_velocity_component(
+    mut commands: Commands,
+    query: Query<
+        (Entity, &RotateInDirectionOfMovement),
+        (Without<AverageVelOverTime>, Changed<RotateInDirectionOfMovement>),
+    >,
+) {
+    for (entity, rotate) in query.iter() {
+        if let RotationMode::Average { time_window } = rotate.rotation_mode {
+            commands
+                .entity(entity)
+                .insert(AverageVelOverTime {
+                    time_window,
+                    average_speed: Vec3::ZERO,
+                });
+        }
     }
 }
 
@@ -104,9 +173,10 @@ pub fn tilt_in_direction_of_acceleration(
         };
 
         // Calculate and store new tilt
-        let new_tilt = tilt
-            .current_tilt
-            .slerp(target_rotation, tilt.tilt_smoothing_speed * time.delta_seconds());
+        let new_tilt = tilt.current_tilt.slerp(
+            target_rotation,
+            tilt.tilt_smoothing_speed * time.delta_secs(),
+        );
         tilt.current_tilt = new_tilt;
 
         // Apply the new tilt

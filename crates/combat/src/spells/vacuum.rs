@@ -1,9 +1,6 @@
 use bevy::prelude::*;
 use meta_components::temporal::Temporary;
-use movement::{
-    kinematic_character_controller::MoveVelocity,
-    movement::{CantMove, CursorPos},
-};
+use movement::movement::{CantMove, CursorPos, MoveVelocity};
 use steering::{
     spatial_filters::rotated_box::{BoxData, RotatedBoxFilter},
     spatial_hashing::spatial_hashmap::SpatialHashmap,
@@ -17,7 +14,7 @@ use crate::{
     units::unit::Unit,
 };
 
-use super::spell::{Action, ActionData};
+use super::spell::ActionData;
 
 #[derive(Component, Clone, Copy)]
 pub struct VacuumSpell {
@@ -26,8 +23,6 @@ pub struct VacuumSpell {
     pub pull_force: f32,
     pub eat_range: f32,
 }
-
-
 
 pub fn cast_vacuum(
     mut commands: Commands,
@@ -51,7 +46,7 @@ pub fn cast_vacuum(
             Ok((_, caster_cursor)),
             Ok((_, caster_transform)),
             Ok((_, caster_team)),
-            Ok(mut caster_inventory),
+            Ok(caster_inventory),
         ) = (
             cursors.get(caster),
             transforms.get(caster),
@@ -115,7 +110,6 @@ pub fn cast_vacuum(
                     item: Item::Unit {
                         name: unit.unit_name,
                     },
-                    
                 });
             };
         }

@@ -64,7 +64,6 @@ pub fn handle_inventory_additions(
 
 pub fn handle_inventory_removals(
     mut commands: Commands,
-    mut inventories: Query<&mut Inventory>,
     to_remove: Query<(Entity, &RemoveFromInventory), With<InInventory>>,
 ) {
     for (entity, _) in to_remove.iter() {

@@ -1,73 +1,45 @@
 [package]
-name = "bevy_game"                               # ToDo
+name = "bevy_game"
 version = "0.1.0"
 publish = false
-authors = ["f0kes <f0kesppokes@gmail.com>"]      # ToDo: you are the author ;)
+authors = ["f0kes <f0kesppokes@gmail.com>"]
 edition = "2021"
 exclude = ["dist", "build", "assets", "credits"]
 
 [workspace]
 members = [
     "crates/camera",
-    "crates/combat", "crates/editor_ext",
+    "crates/combat",
     "crates/input_actions",
-
     "crates/meta_components",
     "crates/misc",
     "crates/movement",
     "crates/outline",
     "crates/ownership",
     "crates/steering",
-    "crates/editor_ext",
     "crates/world_gen",
-    "crates/particles",
-    "directional_animation",
-    "mobile", "crates/meta_macro_derive", "crates/particles",
+    "crates/meta_macro_derive",
+     "crates/easy_model_load",
 ]
 
-[dependencies]
-bevy = { version = "0.14", default-features = false, features = [
-    "animation",
-    "bevy_asset",
-    "bevy_state",
-    "bevy_color",
-    "bevy_gilrs",
-    "bevy_scene",
-    "bevy_winit",
-    "bevy_core_pipeline",
-    "bevy_pbr",
-    "bevy_gltf",
-    "bevy_render",
-    "bevy_sprite",
-    "bevy_text",
-    "bevy_ui",
-    "multi_threaded",
-    "png",
-    "hdr",
-    "x11",
-    "bevy_gizmos",
-    "tonemapping_luts",
-    "smaa_luts",
-    "default_font",
-    "webgl2",   
-    "sysinfo_plugin",
-] }
-bevy_mod_outline = {version ="0.8.3"}
-bevy_kira_audio = { version = "0.20" }
-bevy_asset_loader = { version = "0.21" }
-rand = { version = "0.8.3" }
-bevy_hanabi = {version = "0.12.2"}
-webbrowser = { version = "1", features = ["hardened"] }
-
-# keep the following in sync with Bevy's dependencies
+[workspace.dependencies]
+bevy = {version = "0.15.2", default-features = true}
+bevy_asset_loader = "0.22.0"
+bevy_hanabi = "0.14.0"
+bevy-inspector-egui = "0.28"
+bevy_spatial = { git = "https://github.com/VitalyArtemiev/bevy-spatial", branch = "within" }
+rand = "0.9.0"
+serde = { version = "1.0.215", features = ["derive"] }
+ron = "0.8.1"
 winit = { version = "0.30", default-features = false }
 image = { version = "0.25", default-features = false }
-## This greatly improves WGPU's performance due to its heavy use of trace! calls
-log = { version = "0.4", features = [
-    "max_level_debug",
-    "release_max_level_warn",
-] }
-directional_animation = { path = "./directional_animation" }
+log = { version = "0.4", features = ["max_level_debug", "release_max_level_warn"] }
+thiserror= {version= "2.0.11"}
+avian3d = "0.2.1"
+bevy_tweening = "0.12.0" 
+vleue_navigator = {version="0.11.1", features= ["avian3d"]}
+
+
 movement = { path = "./crates/movement" }
 input_actions = { path = "./crates/input_actions" }
 outline = { path = "./crates/outline" }
@@ -75,18 +47,42 @@ ownership = { path = "./crates/ownership" }
 camera = { path = "./crates/camera" }
 steering = { path = "./crates/steering" }
 combat = { path = "./crates/combat" }
-particles = {path = "./crates/particles"}
 meta_components = { path = "./crates/meta_components" }
 misc = { path = "./crates/misc" }
-editor_ext={path ="./crates/editor_ext"}
+world_gen = { path = "./crates/world_gen" }
+easy_model_load = { path = "./crates/easy_model_load" }
 
-serde = { version = "1.0.214", features = ["derive"] }
-ron = "0.8.1"
-bevy_editor_pls.workspace = true
-blenvy = "0.1.0-alpha.1"
-avian3d.workspace = true
-world_gen.workspace = true
-bevy_spatial.workspace = true
+[dependencies]
+bevy = { workspace = true }
+bevy_asset_loader = { workspace = true }
+bevy_hanabi = { workspace = true }
+rand = { workspace = true }
+serde = { workspace = true }
+ron = { workspace = true }
+avian3d = { workspace = true }
+bevy_spatial = { workspace = true }
+bevy-inspector-egui = { workspace = true }
+vleue_navigator = { workspace = true }
+
+
+movement = { workspace = true }
+input_actions = { workspace = true }
+outline = { workspace = true }
+ownership = { workspace = true }
+camera = { workspace = true }
+steering = { workspace = true }
+combat = { workspace = true }
+meta_components = { workspace = true }
+misc = { workspace = true }
+world_gen = { workspace = true }
+easy_model_load = { workspace = true }
+
+# Local crates
+
+
+[features]
+dev = ["bevy/dynamic_linking"]
+default = ["dev"]
 
 [profile.dev.package."*"]
 opt-level = 3
@@ -94,75 +90,15 @@ opt-level = 3
 [profile.dev]
 opt-level = 1
 
-# This is used by trunk as it doesn't support custom profiles: https://github.com/trunk-rs/trunk/issues/605
-# xbuild also uses this profile for building android AABs because I couldn't find a configuration for it
 [profile.release]
 opt-level = "s"
 lto = true
 codegen-units = 1
 strip = true
 
-# Profile for distribution
 [profile.dist]
 inherits = "release"
 opt-level = 3
-lto = true
-codegen-units = 1
-strip = true
-
-[features]
-dev = ["bevy/dynamic_linking"]
-default = ["dev"]
-
-# All of Bevy's default features exept for the audio related ones (bevy_audio, vorbis), since they clash with bevy_kira_audio
-#   and android_shared_stdcxx, since that is covered in `mobile`
-[workspace.dependencies]
-bevy = { version = "0.14", default-features = false, features = [
-    "animation",
-    "bevy_asset",
-    "bevy_state",
-    "bevy_color",
-    "bevy_gilrs",
-    "bevy_scene",
-    "bevy_winit",
-    "bevy_core_pipeline",
-    "bevy_pbr",
-    "bevy_gltf",
-    "bevy_render",
-    "bevy_sprite",
-    "bevy_text",
-    "bevy_ui",
-    "multi_threaded",
-    "png",
-    "hdr",
-    "x11",
-    "bevy_gizmos",
-    "tonemapping_luts",
-    "smaa_luts",
-    "default_font",
-    "webgl2",
-    "sysinfo_plugin",
-] }
-bevy_kira_audio = { version = "0.20" }
-bevy_asset_loader = { version = "0.21" }
-rand = { version = "0.8.3" }
-webbrowser = { version = "1", features = ["hardened"] }
-bevy_editor_pls = "0.9.0"
-serde = { version = "1.0.215", features = ["derive"] }
-avian3d = "0.1.2"
-bevy_spatial = { git = "https://github.com/VitalyArtemiev/bevy-spatial", branch = "within" }
-bevy_hanabi = {version = "0.12.2"}
-
-# keep the following in sync with Bevy's dependencies
-winit = { version = "0.30", default-features = false }
-image = { version = "0.25", default-features = false }
-## This greatly improves WGPU's performance due to its heavy use of trace! calls
-log = { version = "0.4", features = [
-    "max_level_debug",
-    "release_max_level_warn",
-] }
-world_gen = { path = "./crates/world_gen" }
-
 
 [build-dependencies]
-embed-resource = "1"
+embed-resource = "3.0.1"

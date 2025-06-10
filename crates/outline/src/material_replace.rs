@@ -1,4 +1,3 @@
-use std::hash::Hash;
 
 use bevy::prelude::*;
 
@@ -8,7 +7,7 @@ pub trait TexturableMaterial: Material {
 
 #[derive(Component, Debug, Reflect)]
 pub struct ReplaceMaterialMarker<T: Material> {
-    pub material: Handle<T>,
+    pub material: MeshMaterial3d<T>,
 }
 
 #[derive(Component, Debug, Reflect)]
@@ -34,11 +33,11 @@ fn collect_descendants(
 fn replace_material<T: Material>(
     commands: &mut Commands,
     entity: Entity,
-    new_material: Handle<T>,
+    new_material: MeshMaterial3d<T>,
 ) {
     commands
         .entity(entity)
-        .remove::<Handle<StandardMaterial>>()
+        .remove::<MeshMaterial3d<StandardMaterial>>()
         .insert(new_material);
 }
 
@@ -46,7 +45,7 @@ pub fn replace_standart_materials<T: Material>(
     mut commands: Commands,
     query: Query<(Entity, &ReplaceMaterialMarker<T>)>,
     with_children: Query<&Children>,
-    with_standart_material: Query<&Handle<StandardMaterial>>,
+    with_standart_material: Query<&MeshMaterial3d<StandardMaterial>>,
 ) {
     for (entity, marker) in query.iter() {
         let candidates = collect_descendants(entity, &with_children);
@@ -64,7 +63,7 @@ pub fn replace_standart_materials_keep_texture<T: TexturableMaterial>(
     mut commands: Commands,
     query: Query<(Entity, &ReplaceMaterialKeepTextureMarker<T>)>,
     with_children: Query<&Children>,
-    with_standart_material: Query<&Handle<StandardMaterial>>,
+    with_standart_material: Query<&MeshMaterial3d<StandardMaterial>>,
     mut materials: ResMut<Assets<T>>,
     standart_materials: Res<Assets<StandardMaterial>>,
 ) {
@@ -83,7 +82,11 @@ pub fn replace_standart_materials_keep_texture<T: TexturableMaterial>(
                     .map(|texture| new_material.set_texture(texture));
 
                 let new_material = materials.add(new_material);
-                replace_material(&mut commands, candidate, new_material);
+                replace_material(
+                    &mut commands,
+                    candidate,
+                    MeshMaterial3d(new_material),
+                );
             }
         }
     }

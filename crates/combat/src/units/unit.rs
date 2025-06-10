@@ -2,16 +2,17 @@ use bevy::{prelude::*, utils::HashMap};
 
 use meta_components::in_world::InWorld;
 use movement::{
-    kinematic_character_controller::KinematicCharacterControllerBundle,
-    movement::{ApplyGravity, GlueToGround},
-    rotate::{RotateInDirectionOfMovement, TiltInDirectionOfMovement},
+    movement::{ApplyGravity, GlueToGround, Move, MoveVelocity},
+    rotate::{
+        RotateInDirectionOfMovement, RotationMode, TiltInDirectionOfMovement,
+    },
     step_animation::StepAnimation,
 };
 use outline::{
     material_replace::ReplaceMaterialKeepTextureMarker,
     toon_shader::default_toon_shader_material,
 };
-use steering::plugin::SteeringAgent;
+use steering::{plugin::SteeringAgent, steering_agent::SpatialEntity};
 
 use crate::teams::TEAM_PLAYER;
 #[derive(Component, Clone, Copy, Debug)]
@@ -68,24 +69,26 @@ pub fn spawn_units(
             handle
         };
         commands.entity(entity).insert((
-            SceneBundle {
-                scene: unit_handle,
-                transform: transform.clone().with_translation(
-                    transform.translation + unit.spawn_offset,
-                ),
+            transform
+                .clone()
+                .with_translation(transform.translation + unit.spawn_offset),
+            SceneRoot(unit_handle),
+            RotateInDirectionOfMovement {
+                rotation_mode: RotationMode::Average { time_window: 0.5 },
                 ..Default::default()
             },
-            RotateInDirectionOfMovement::default(),
             TiltInDirectionOfMovement::default(),
             StepAnimation::default(),
             GlueToGround::default(),
             SteeringAgent,
-            KinematicCharacterControllerBundle::default(),
+            SpatialEntity,
+            MoveVelocity(Vec3::ZERO),
             ReplaceMaterialKeepTextureMarker {
                 material: default_toon_shader_material(),
             },
             ApplyGravity,
             InWorld,
+            Move(Vec3::ZERO),
             TEAM_PLAYER,
         ));
 

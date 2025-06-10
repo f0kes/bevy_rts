@@ -45,12 +45,12 @@ use meta_macro_derive::meta_component;
 #[meta_component(InWorld)]
 #[derive(Default)]
 pub struct InWorldBlueprint {
-    pub handle: Handle<Scene>,
+    pub scene: SceneRoot,
     pub transform: Transform,
     pub global_transform: GlobalTransform,
 }
 
-pub fn query_in_world(mut commands: Commands, query: Query<InWorldQuery>) {
+pub fn query_in_world(query: Query<InWorldQuery>) {
     for blueprint in query.iter() {
         blueprint.global_transform;
     }

@@ -2,45 +2,54 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use avian3d::prelude::{
-    ColliderConstructor, CollisionMargin, PhysicsGizmos, RigidBody,
+    ColliderConstructor, CollisionMargin, PhysicsDebugPlugin, PhysicsGizmos,
+    RigidBody,
 };
+use avian3d::PhysicsPlugins;
 use bevy::asset::AssetMetaCheck;
+use bevy::scene::ScenePlugin;
+use bevy_game::box_select::draw_rectangle::{
+    DrawRectanglePlugin, RectangleTestPlugin,
+};
+use bevy_game::box_select::mouse_drag::{
+    MouseDragPlugin, MouseDragRectangleTestPlugin,
+};
+use bevy_game::box_select::unit_selection::{
+    UnitSelectionPlugin, UnitSelectionTestPlugin,
+};
+use bevy_game::loading::LoadingPlugin;
+use bevy_game::navigation::NavigationPlugin;
+use bevy_game::particles::plugin::ParticlesPlugin;
+use bevy_game::scene::DefaultScenePlugin;
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
 use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
-use bevy::pbr::{CascadeShadowConfigBuilder, ExtendedMaterial};
+use bevy::pbr::{
+    CascadeShadowConfig, CascadeShadowConfigBuilder, ExtendedMaterial,
+};
 use bevy::prelude::*;
 
-use bevy::window::{PresentMode, PrimaryWindow};
-use bevy::winit::WinitWindows;
+use bevy::window::PresentMode;
 use bevy::DefaultPlugins;
 
-use bevy_editor_pls::{AddEditorWindow, EditorPlugin};
 use bevy_game::dudliq::{spawn_a_lot_of_dudliqs, DudliqPlugin};
-use bevy_game::player::PlayerPlugin;
+use bevy_game::player::{Mode, PlayerPlugin};
 
 use bevy_hanabi::HanabiPlugin;
-use bevy_mod_outline::{
-    AsyncSceneInheritOutlinePlugin, AutoGenerateOutlineNormalsPlugin,
-    OutlinePlugin,
-};
 use camera::plugin::SmoothCameraPlugin;
 use combat::inventory::plugin::InventoryPlugin;
 use combat::spells::plugin::SpellsPlugin;
 use combat::units::plugin::UnitsPlugin;
-use editor_ext::{self, ComponentSearchWindow};
+use easy_model_load::plugin::EasyModelLoadPlugin;
 use meta_components::plugin::MetaComponentsPlugin;
-use misc::disabled::ComponentTogglePlugin;
 use outline::clash_grass::{CheckerGrassExtension, CheckerGrassMaterialConfig};
 use outline::plugin::MyMaterialsPlugin;
-use outline::toon_shader::{ToonShaderMaterial, ToonShaderSun};
-use particles::plugin::ParticlesPlugin;
-use steering::plugin::{SpatialStructure, SteeringPlugin};
+use outline::toon_shader::ToonShaderSun;
+use steering::plugin::{SpatialStructure, SteeringMode, SteeringPlugin};
+use vleue_navigator::VleueNavigatorPlugin;
 use world_gen::terrain::{Terrain, TerrainLike, TerrainPlaneOptions};
 
 use std::f32::consts::PI;
-use std::io::Cursor;
-
-use winit::window::Icon;
 
 #[derive(Component, Reflect)]
 #[reflect(Component)]
@@ -52,7 +61,6 @@ fn main() {
         enabled: false,
         ..default()
     };
-    app.insert_resource(Msaa::Off);
 
     //app.insert_resource(ClearColor(Color::linear_rgb(0.4, 0.4, 0.4)));
 
@@ -77,94 +85,75 @@ fn main() {
     };
 
     app.add_plugins(DefaultPlugins.set(window_plugin).set(asset_plugin));
-    app.add_plugins(EditorPlugin::default());
-    app.add_editor_window::<ComponentSearchWindow>();
 
     app.register_type::<Dude>();
 
-    app.add_systems(Startup, set_window_icon);
-    app.add_systems(Startup, setup);
-    //app.add_systems(Update, animation_control);
+    app.add_plugins(LoadingPlugin);
     app.add_plugins(PlayerPlugin);
+    app.add_plugins(DefaultScenePlugin);
     app.add_plugins(MyMaterialsPlugin);
-    //app.add_plugins(PhysicsPlugins::default());
-    //app.add_plugins(PhysicsDebugPlugin::default());
-    //app.add_plugins(GrassPlugin::<Terrain>::default());
     app.add_plugins(FrameTimeDiagnosticsPlugin::default());
     app.add_plugins(LogDiagnosticsPlugin::default());
 
     app.insert_gizmo_config(
         PhysicsGizmos {
-            aabb_color: Some(Color::linear_rgb(0., 0., 1.)),
+            //aabb_color: Some(Color::linear_rgb(0., 0., 1.)),
+            collider_color: Some(Color::linear_rgb(0., 1., 0.)),
             ..default()
         },
         gismo_config,
     );
+    app.add_plugins(PhysicsPlugins::default());
+    app.add_plugins(PhysicsDebugPlugin::default());
     app.add_plugins(SmoothCameraPlugin);
     app.add_plugins(SteeringPlugin {
         spatial_structure: SpatialStructure::Hashmap { grid_size: 5.0 },
+        steering_mode: SteeringMode::Boids,
     });
     /* app.add_plugins(SteeringPlugin {
         spatial_structure: SpatialStructure::KdTree,
     });*/
     app.add_plugins(UnitsPlugin);
     app.add_plugins(DudliqPlugin);
-    app.add_systems(Startup, spawn_a_lot_of_dudliqs);
     app.add_plugins(SpellsPlugin);
     app.add_plugins(InventoryPlugin);
     app.add_plugins(MetaComponentsPlugin);
+    app.add_plugins(WorldInspectorPlugin::new());
 
-    app.add_plugins(OutlinePlugin);
-    app.add_plugins(AutoGenerateOutlineNormalsPlugin);
-    app.add_plugins(AsyncSceneInheritOutlinePlugin);
     app.add_plugins(HanabiPlugin);
     app.add_plugins(ParticlesPlugin);
-
+    app.add_plugins(DrawRectanglePlugin);
+    app.add_plugins(MouseDragPlugin);
+    app.add_plugins(MouseDragRectangleTestPlugin);
+    app.add_plugins(UnitSelectionPlugin);
+    app.add_plugins(UnitSelectionTestPlugin);
+    app.add_plugins(EasyModelLoadPlugin);
+    app.add_plugins(NavigationPlugin { debug: true });
+    app.insert_resource(ClearColor(Color::linear_rgb(0.529, 0.808, 0.922)));
     app.run();
 }
 
-// Sets the icon on windows and X11
-fn set_window_icon(
-    windows: NonSend<WinitWindows>,
-    primary_window: Query<Entity, With<PrimaryWindow>>,
-) {
-    let primary_entity = primary_window.single();
-    let Some(primary) = windows.get_window(primary_entity) else {
-        return;
-    };
-    let icon_buf = Cursor::new(include_bytes!(
-        "../build/macos/AppIcon.iconset/icon_256x256.png"
-    ));
-    if let Ok(image) = image::load(icon_buf, image::ImageFormat::Png) {
-        let image = image.into_rgba8();
-        let (width, height) = image.dimensions();
-        let rgba = image.into_raw();
-        let icon = Icon::from_rgba(rgba, width, height).unwrap();
-        primary.set_window_icon(Some(icon));
-    };
-}
-
-fn setup(
+/* fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     mut meshes: ResMut<Assets<Mesh>>,
-    toon_materials: ResMut<Assets<ToonShaderMaterial>>,
-    standart_materials: ResMut<Assets<StandardMaterial>>,
+
     mut grass_materials: ResMut<
         Assets<ExtendedMaterial<StandardMaterial, CheckerGrassExtension>>,
     >,
 ) {
-    commands.spawn((
-        SceneBundle {
-            scene: asset_server.load("levels/World.glb#Scene0"),
+    //commands.spawn((SceneRoot(asset_server.load("levels/World.glb#Scene0")),));
+    let terrain_height = 2000.;
+    let terrain_width = 2000.;
+    let terrain = Terrain::new_perlin(
+        TerrainPlaneOptions {
+            noise_scale: 0.01,
+            height: terrain_height,
+            width: terrain_width,
             ..Default::default()
         },
-        // SpawnBlueprint,
-        // HideUntilReady,
-        // GameWorldTag,
-    ));
-
-    let terrain = Terrain::new_perlin(TerrainPlaneOptions::default(), 64);
+        64,
+    );
     let mesh = meshes.add(terrain.get_mesh().clone());
     commands.insert_resource(terrain.clone());
     commands.spawn((
@@ -172,178 +161,57 @@ fn setup(
         ColliderConstructor::TrimeshFromMesh,
         CollisionMargin(1.),
         RigidBody::Static,
-        MaterialMeshBundle {
-            mesh: mesh,
-            material: grass_materials.add(ExtendedMaterial {
-                base: StandardMaterial {
-                    base_color: Color::srgb(0.4, 0.8, 0.4),
-                    normal_map_texture: Some(
-                        asset_server.load("textures/checker_normal.png"),
-                    ),
-
-                    ..default()
-                },
-                extension: CheckerGrassExtension {
-                    config: CheckerGrassMaterialConfig {
-                        plane_size_x: TerrainPlaneOptions::default().width,
-                        plane_size_z: TerrainPlaneOptions::default().height,
-                        tile_size: 1.,
-                        normal_tiles_x: 4,
-                    },
-                },
-            }),
-            /* standart_materials.add(StandardMaterial {
-                base_color: Color::srgb(0.4, 0.8, 0.4),
-                normal_map_texture: Some(asset_server.load("textures/checker_normal.png")),
-                ..default()
-            }), */
-            transform: Transform::from_xyz(0.0, 0.0, 0.0),
-            ..default()
-        },
-        //SpawnGrass,
+        Mesh3d(mesh),
+        MeshMaterial3d(grass_materials.add(create_grass_material(
+            asset_server,
+            terrain_height,
+            terrain_width,
+        ))), //SpawnGrass,
+        Transform::from_xyz(0.0, 0.0, 0.0),
     ));
     commands.spawn((
-        DirectionalLightBundle {
-            directional_light: DirectionalLight {
-                illuminance: 2000.,
-                shadows_enabled: true,
-                ..default()
-            },
-            transform: Transform {
-                translation: Vec3::new(0.0, 2.0, 0.0),
-                rotation: Quat::from_rotation_x(-PI / 6.)  // tilts down about 30 degrees
-                    * Quat::from_rotation_y(-PI / 10.), // rotates towards left/west about 60 degrees
-                ..default()
-            },
-            // The default cascade config is designed to handle large scenes.
-            // As this example has a much smaller world, we can tighten the shadow
-            // bounds for better visual quality.
-            cascade_shadow_config: CascadeShadowConfigBuilder {
-                maximum_distance: 100.0,
-                ..default()
-            }
-            .into(),
+        DirectionalLight {
+            illuminance: 2000.,
+            shadows_enabled: true,
             ..default()
         },
+        Transform {
+            translation: Vec3::new(0.0, 2.0, 0.0),
+            rotation: Quat::from_rotation_x(-PI / 6.)  // tilts down about 30 degrees
+                    * Quat::from_rotation_y(-PI / 10.), // rotates towards left/west about 60 degrees
+            ..default()
+        },
+        CascadeShadowConfig::from(CascadeShadowConfigBuilder {
+            maximum_distance: 1000.0,
+            ..default()
+        }),
         ToonShaderSun,
     ));
     commands.insert_resource(AmbientLight {
         color: Color::WHITE,
         brightness: 100.,
     });
-
-    //commands.spawn(DebugRender::default());
 }
-
-/* pub fn animation_control(
-    animated_dudes: Query<
-        (&BlueprintAnimationPlayerLink, &BlueprintAnimations),
-        With<Dude>,
-    >,
-
-    mut animation_players: Query<(
-        &mut AnimationPlayer,
-        &mut AnimationTransitions,
-    )>,
-
-    keycode: Res<ButtonInput<KeyCode>>,
-    // mut entities_with_animations : Query<(&mut AnimationPlayer, &mut BlueprintAnimations)>,
-) {
-    // robots
-    if keycode.just_pressed(KeyCode::Digit1) {
-        println!("scan animation for robots");
-        for (link, animations) in animated_dudes.iter() {
-            let (mut animation_player, mut animation_transitions) =
-                animation_players.get_mut(link.0).unwrap();
-            println!("got some animations");
-            let anim_name = "Idle";
-            animation_transitions
-                .play(
-                    &mut animation_player,
-                    *animations
-                        .named_indices
-                        .get(anim_name)
-                        .expect("animation name should be in the list"),
-                    Duration::from_secs(5),
-                )
-                .repeat();
-        }
+pub fn create_grass_material(
+    asset_server: Res<AssetServer>,
+    width: f32,
+    height: f32,
+) -> ExtendedMaterial<StandardMaterial, CheckerGrassExtension> {
+    ExtendedMaterial {
+        base: StandardMaterial {
+            base_color: Color::srgb(0.4, 0.8, 0.4),
+            normal_map_texture: Some(
+                asset_server.load("textures/checker_normal.png"),
+            ),
+            ..default()
+        },
+        extension: CheckerGrassExtension {
+            config: CheckerGrassMaterialConfig {
+                plane_size_x: width,
+                plane_size_z: height,
+                tile_size: 1.,
+                normal_tiles_x: 4,
+            },
+        },
     }
-
-    // foxes
-    if keycode.just_pressed(KeyCode::Digit2) {
-        for (link, animations) in animated_dudes.iter() {
-            let (mut animation_player, mut animation_transitions) =
-                animation_players.get_mut(link.0).unwrap();
-
-            let anim_name = "Run";
-            animation_transitions
-                .play(
-                    &mut animation_player,
-                    *animations
-                        .named_indices
-                        .get(anim_name)
-                        .expect("animation name should be in the list"),
-                    Duration::from_secs(5),
-                )
-                .repeat();
-        }
-    }
-
-    if keycode.just_pressed(KeyCode::Digit3) {
-        for (link, animations) in animated_dudes.iter() {
-            let (mut animation_player, mut animation_transitions) =
-                animation_players.get_mut(link.0).unwrap();
-
-            let anim_name = "Melee";
-            animation_transitions
-                .play(
-                    &mut animation_player,
-                    *animations
-                        .named_indices
-                        .get(anim_name)
-                        .expect("animation name should be in the list"),
-                    Duration::from_secs(5),
-                )
-                .repeat();
-        }
-    }
-
-    if keycode.just_pressed(KeyCode::Digit4) {
-        for (link, animations) in animated_dudes.iter() {
-            let (mut animation_player, mut animation_transitions) =
-                animation_players.get_mut(link.0).unwrap();
-
-            let anim_name = "Hit";
-            animation_transitions
-                .play(
-                    &mut animation_player,
-                    *animations
-                        .named_indices
-                        .get(anim_name)
-                        .expect("animation name should be in the list"),
-                    Duration::from_secs(5),
-                )
-                .repeat();
-        }
-    }
-    if keycode.just_pressed(KeyCode::Digit5) {
-        for (link, animations) in animated_dudes.iter() {
-            let (mut animation_player, mut animation_transitions) =
-                animation_players.get_mut(link.0).unwrap();
-
-            let anim_name = "Dig";
-            animation_transitions
-                .play(
-                    &mut animation_player,
-                    *animations
-                        .named_indices
-                        .get(anim_name)
-                        .expect("animation name should be in the list"),
-                    Duration::from_secs(5),
-                )
-                .repeat();
-        }
-    }
-}
- */
+} */

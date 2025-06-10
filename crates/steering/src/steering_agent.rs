@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_spatial::{kdtree::KDTree3, AutomaticUpdate, SpatialAccess};
+use bevy_spatial::kdtree::KDTree3;
 
 use crate::plugin::SteeringAgent;
 
@@ -25,7 +25,7 @@ pub fn add_spatial_entity_to_steering_agents(
         commands.entity(entity).insert(SpatialEntity);
     }
 }
-impl SpatialStructure for SteeringAgentTree {
+/* impl SpatialStructure for SteeringAgentTree {
     /* fn update(&mut self, entity: Entity, position: Vec3) {}
 
     fn remove(&mut self, entity: Entity) {
@@ -41,7 +41,7 @@ impl SpatialStructure for SteeringAgentTree {
             self, position, distance,
         )
     }
-}
+} */
 pub fn get_nearby_unit_positions<'a, T: SpatialStructure>(
     space: &T,
     entity: Entity,
@@ -80,7 +80,7 @@ pub fn get_nearby_unit_entities_and_positions<'a, T: SpatialStructure>(
             entities_and_positions
                 .iter()
                 .find(|(e, _)| *e == other_entity)
-                .map(|(e, pos)| (other_entity, *pos))
+                .map(|(_, pos)| (other_entity, *pos))
         })
         .take(max_count)
 }

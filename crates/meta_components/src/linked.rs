@@ -20,9 +20,9 @@ impl<T: Bundle + Clone> SpawnLinked<T> {
 // System to handle spawning linked entities
 fn spawn_linked_system<T: Bundle + Clone>(
     mut commands: Commands,
-    mut query: Query<(Entity, &mut SpawnLinked<T>)>,
+    mut query: Query<&mut SpawnLinked<T>>,
 ) {
-    for (entity, mut spawn_linked) in query.iter_mut() {
+    for mut spawn_linked in query.iter_mut() {
         if spawn_linked.spawned_entity.is_none() {
             let spawned =
                 commands.spawn(spawn_linked.data_to_spawn.clone()).id();

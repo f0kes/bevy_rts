@@ -1,5 +1,7 @@
 use bevy::prelude::*;
-use outline::grass::Heightmap;
+
+use crate::Heightmap;
+
 
 pub struct SphereTrace {
     pub ray_start: Vec3,

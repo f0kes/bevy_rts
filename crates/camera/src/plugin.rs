@@ -1,9 +1,10 @@
 use avian3d::prelude::*;
 use bevy::prelude::*;
+use movement::rotate;
 
-use crate::{
-    camera::{update_camera_input, zoom, CameraHolder, CameraMode},
-    follow::follow_target,
+use crate::camera::{
+    rotate, update_camera_input, update_camera_rotation_input, zoom,
+    CameraHolder, CameraMode,
 };
 
 #[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
@@ -30,10 +31,11 @@ impl Plugin for SmoothCameraPlugin {
                 Update, //PhysicsSchedule,
                 (
                     update_camera_input.in_set(CameraSystemSet::Input),
+                    update_camera_rotation_input.in_set(CameraSystemSet::Input),
+                    rotate.in_set(CameraSystemSet::Follow),
                     zoom.in_set(CameraSystemSet::Follow),
                 ),
             )
-            .add_systems(Update, follow_target)
             .register_type::<CameraHolder>()
             .register_type::<CameraMode>();
     }

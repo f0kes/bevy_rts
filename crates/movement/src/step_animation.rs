@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::kinematic_character_controller::MoveVelocity;
+use crate::movement::MoveVelocity;
 
 #[derive(Component)]
 pub struct StepAnimation {
@@ -32,7 +32,7 @@ pub fn animate_steps(
         if speed > 0.1 {
             // Update the phase based on movement speed
             step_animation.phase +=
-                time.delta_seconds() * step_animation.step_frequency * speed;
+                time.delta_secs() * step_animation.step_frequency * speed;
             step_animation.phase %= std::f32::consts::TAU; // Keep phase between 0 and 2π
 
             // Calculate vertical offset using a sine wave

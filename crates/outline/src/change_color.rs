@@ -39,7 +39,7 @@ pub struct Recolor {
 }
 pub fn recolor_models<T: ColorReplacableMaterial>(
     mut commands: Commands,
-    query: Query<(Entity, &Recolor, &Handle<T>), Added<Recolor>>,
+    query: Query<(Entity, &Recolor, &MeshMaterial3d<T>), Added<Recolor>>,
     mut materials: ResMut<Assets<T>>,
 ) {
     for (entity, recolor, material_handle) in query.iter() {

@@ -1,13 +1,8 @@
 use bevy::prelude::*;
 use meta_components::in_world::InWorld;
-use movement::{
-    kinematic_character_controller::MoveVelocity, movement::CursorPos,
-};
+use movement::movement::{CursorPos, MoveVelocity};
 
-use crate::{
-    inventory::{ChosenSlot, Inventory, Item},
-    units::unit::UnitName,
-};
+use crate::inventory::{ChosenSlot, Inventory, Item};
 
 use super::spell::ActionData;
 #[derive(Component, Clone, Copy)]
@@ -28,12 +23,12 @@ pub fn cast_summon(
     time: Res<Time>,
 ) {
     for (mut spell, action_data) in spell.iter_mut() {
-        spell.last_summon_time += time.delta_seconds();
+        spell.last_summon_time += time.delta_secs();
         //println!("casting summon spell");
         if spell.last_summon_time < spell.summon_interval {
             continue;
         }
-        
+
         spell.last_summon_time = 0.0;
         let caster = action_data.actor;
         if let Ok((cursor, transform, mut inventory, chosen_slot)) =
@@ -55,7 +50,6 @@ pub fn cast_summon(
                         ));
                         info!("summoned unit");
                     }
-                    _ => {}
                 }
             }
         }

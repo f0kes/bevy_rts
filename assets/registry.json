@@ -12296,12 +12296,12 @@
             "$ref": "#/$defs/bevy_utils::Duration"
           }
         },
-        "delta_seconds": {
+        "delta_secs": {
           "type": {
             "$ref": "#/$defs/f32"
           }
         },
-        "delta_seconds_f64": {
+        "delta_secs_f64": {
           "type": {
             "$ref": "#/$defs/f64"
           }
@@ -12346,8 +12346,8 @@
         "context",
         "wrap_period",
         "delta",
-        "delta_seconds",
-        "delta_seconds_f64",
+        "delta_secs",
+        "delta_secs_f64",
         "elapsed",
         "elapsed_seconds",
         "elapsed_seconds_f64",
@@ -12375,12 +12375,12 @@
             "$ref": "#/$defs/bevy_utils::Duration"
           }
         },
-        "delta_seconds": {
+        "delta_secs": {
           "type": {
             "$ref": "#/$defs/f32"
           }
         },
-        "delta_seconds_f64": {
+        "delta_secs_f64": {
           "type": {
             "$ref": "#/$defs/f64"
           }
@@ -12425,8 +12425,8 @@
         "context",
         "wrap_period",
         "delta",
-        "delta_seconds",
-        "delta_seconds_f64",
+        "delta_secs",
+        "delta_secs_f64",
         "elapsed",
         "elapsed_seconds",
         "elapsed_seconds_f64",
@@ -12454,12 +12454,12 @@
             "$ref": "#/$defs/bevy_utils::Duration"
           }
         },
-        "delta_seconds": {
+        "delta_secs": {
           "type": {
             "$ref": "#/$defs/f32"
           }
         },
-        "delta_seconds_f64": {
+        "delta_secs_f64": {
           "type": {
             "$ref": "#/$defs/f64"
           }
@@ -12504,8 +12504,8 @@
         "context",
         "wrap_period",
         "delta",
-        "delta_seconds",
-        "delta_seconds_f64",
+        "delta_secs",
+        "delta_secs_f64",
         "elapsed",
         "elapsed_seconds",
         "elapsed_seconds_f64",
@@ -12533,12 +12533,12 @@
             "$ref": "#/$defs/bevy_utils::Duration"
           }
         },
-        "delta_seconds": {
+        "delta_secs": {
           "type": {
             "$ref": "#/$defs/f32"
           }
         },
-        "delta_seconds_f64": {
+        "delta_secs_f64": {
           "type": {
             "$ref": "#/$defs/f64"
           }
@@ -12583,8 +12583,8 @@
         "context",
         "wrap_period",
         "delta",
-        "delta_seconds",
-        "delta_seconds_f64",
+        "delta_secs",
+        "delta_secs_f64",
         "elapsed",
         "elapsed_seconds",
         "elapsed_seconds_f64",
@@ -12612,12 +12612,12 @@
             "$ref": "#/$defs/bevy_utils::Duration"
           }
         },
-        "delta_seconds": {
+        "delta_secs": {
           "type": {
             "$ref": "#/$defs/f32"
           }
         },
-        "delta_seconds_f64": {
+        "delta_secs_f64": {
           "type": {
             "$ref": "#/$defs/f64"
           }
@@ -12662,8 +12662,8 @@
         "context",
         "wrap_period",
         "delta",
-        "delta_seconds",
-        "delta_seconds_f64",
+        "delta_secs",
+        "delta_secs_f64",
         "elapsed",
         "elapsed_seconds",
         "elapsed_seconds_f64",
@@ -12691,12 +12691,12 @@
             "$ref": "#/$defs/bevy_utils::Duration"
           }
         },
-        "delta_seconds": {
+        "delta_secs": {
           "type": {
             "$ref": "#/$defs/f32"
           }
         },
-        "delta_seconds_f64": {
+        "delta_secs_f64": {
           "type": {
             "$ref": "#/$defs/f64"
           }
@@ -12741,8 +12741,8 @@
         "context",
         "wrap_period",
         "delta",
-        "delta_seconds",
-        "delta_seconds_f64",
+        "delta_secs",
+        "delta_secs_f64",
         "elapsed",
         "elapsed_seconds",
         "elapsed_seconds_f64",

@@ -1,5 +1,4 @@
 use bevy::{
-    asset::load_internal_asset,
     pbr::{MaterialPipeline, MaterialPipelineKey},
     prelude::*,
     render::render_resource::{
@@ -8,9 +7,7 @@ use bevy::{
     },
 };
 
-use crate::{
-    material_replace::TexturableMaterial, plugin::TexturableMaterialPlugin,
-};
+use crate::material_replace::TexturableMaterial;
 pub const TOON_SHADER_HANDLE: Handle<Shader> =
     Handle::weak_from_u128(11079857277321826659);
 

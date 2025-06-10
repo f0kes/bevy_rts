@@ -30,22 +30,14 @@ pub fn enable_components<T: Component + Clone>(
         let mut entity_commands = commands.entity(entity);
         // Always remove Enable marker
         entity_commands.remove::<Enable<T>>();
-       /*  println!(
-            "removing enable tag on entity {:?} with component type {:?}",
-            entity,
-            std::any::type_name::<T>()
-        ); */
+      
 
         // Only process if we have a disabled component
         if let Some(disabled) = disabled {
             entity_commands
                 .insert(disabled.data.clone())
                 .remove::<Disabled<T>>();
-           /*  println!(
-                "Enabling entity {:?} with component type {:?}",
-                entity,
-                std::any::type_name::<T>()
-            ); */
+          
         }
     }
 }
@@ -58,7 +50,6 @@ pub fn disable_components<T: Component + Clone>(
     for (entity, component, _) in query.iter() {
         let mut entity_commands = commands.entity(entity);
         // Always remove Disable marker
-        //println!("Disabling entity {:?} with component type {:?}", entity, std::any::type_name::<T>());
         entity_commands.remove::<Disable<T>>();
         // Only process if we have the component
         if let Some(component) = component {
@@ -106,7 +97,6 @@ pub fn overwrite_disabled<T: Component>(
     query: Query<(Entity, &T), With<Disabled<T>>>,
 ) {
     for (entity, _) in query.iter() {
-        //println!("Overwriting disabled component for entity {:?} with component type {:?}", entity, std::any::type_name::<T>());
         commands.entity(entity).remove::<Disabled<T>>();
     }
 }
@@ -145,10 +135,6 @@ impl<'w> ToggleCommands for EntityCommands<'w> {
     }
 
     fn enable<T: Component>(&mut self) -> &mut Self {
-        /* println!(
-            "inserting enable tag with component type {:?}",
-            std::any::type_name::<T>()
-        ); */
         self.insert(Enable::<T>(PhantomData))
     }
 

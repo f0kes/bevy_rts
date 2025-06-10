@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use movement::movement::{Move, MoveInput};
+use movement::movement::Move;
 
 use crate::plugin::SteeringAgent;
 

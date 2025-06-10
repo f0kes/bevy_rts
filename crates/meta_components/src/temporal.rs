@@ -9,7 +9,7 @@ pub fn apply_temporary<T: Component + Clone>(
     mut commands: Commands,
     mut query: Query<(Entity, &mut Temporary<T>)>,
 ) {
-    for (entity, mut temporary) in query.iter_mut() {
+    for (entity, temporary) in query.iter_mut() {
         commands.entity(entity).insert(temporary.value.clone());
     }
 }
@@ -19,7 +19,7 @@ pub fn update_temporary<T: Component + Clone>(
     time: Res<Time>,
 ) {
     for (entity, mut temporary) in query.iter_mut() {
-        temporary.time_left -= time.delta_seconds();
+        temporary.time_left -= time.delta_secs();
         if temporary.time_left <= 0.0 {
             commands.entity(entity).remove::<Temporary<T>>();
             commands.entity(entity).remove::<T>();

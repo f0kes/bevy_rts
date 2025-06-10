@@ -2,7 +2,9 @@ use bevy::prelude::*;
 
 use bevy::render::render_asset::RenderAssetUsages;
 use noise::NoiseFn;
-use outline::grass::{Heightmap, WithBounds};
+
+use crate::{Heightmap, WithBounds};
+
 
 pub struct TerrainPlaneOptions {
     pub width: f32,

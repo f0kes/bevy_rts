@@ -7,7 +7,7 @@ use bevy::{
 use input_actions::action::InputAction;
 
 use super::spell::{
-    Action, ActionBundle, ActionData, ActionDiscriminants, ActionType,
+    Action, ActionBundle, ActionData, ActionType,
 };
 #[derive(Component,Default)]
 pub struct ActiveActions(pub HashSet<InputAction>);

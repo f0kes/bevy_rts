@@ -8,3 +8,5 @@ bevy = { workspace = true }
 serde = { workspace = true }
 avian3d = { workspace = true }
 world_gen = {workspace = true}
+bevy_tweening = {workspace = true}
+rand = {workspace = true}
